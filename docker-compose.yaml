@@ -1,0 +1,17 @@
+version: '4.10.0'
+
+services:
+  database:
+   
+    image: postgres:14.4
+    volumes: 
+      - ./data/db:/var/lib/posgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=akashjs
+      - POSTGRES_PASSWORD=312002
+      - POSTGRES_DB=ecommers
+   
+    
+
