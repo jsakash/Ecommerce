@@ -88,8 +88,8 @@ func AdminLogin(c *gin.Context) {
 	c.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": admin,
-		"token":   tokenString,
+
+		"token": tokenString,
 	})
 
 }
@@ -186,17 +186,17 @@ func AddProduct(c *gin.Context) {
 		Stock:            body.Stock,
 	}
 
-	var duplicate []models.Products
-	database.DB.Find(&duplicate)
+	//var duplicate []models.Products
+	//database.DB.Find(&duplicate)
 
-	for _, i := range duplicate {
-		if i.Product_Name == body.Product_Name {
-			c.JSON(400, gin.H{
-				"message": "Product already exists",
-			})
-			return
-		}
-	}
+	// for _, i := range duplicate {
+	// 	if i. == body {
+	// 		c.JSON(400, gin.H{
+	// 			"message": "Product already exists",
+	// 		})
+	// 		return
+	// 	}
+	// }
 
 	result := database.DB.Create(&products)
 
