@@ -139,4 +139,6 @@ func ValidateOtp(c *gin.Context) {
 		"token":  tokenString,
 	})
 
+	db.Raw("DELETE FROM otps WHERE mobile=?", userNum).Scan(&otp)
+
 }
