@@ -13,27 +13,25 @@ import (
 )
 
 var body struct {
-	First_Name string
-	Last_Name  string
-	Email      string
-	Password   string
-	Status     bool
+	First_Name   string
+	Last_Name    string
+	Email        string
+	Password     string
+	Phone_Number string
+	Status       bool
 }
 
 func Signup(c *gin.Context) {
 
 	//Get the name/email/password off req body
-
 	if c.Bind(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to read body",
 		})
-
 		return
 	}
 
 	// Hash the password
-
 	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 
 	if err != nil {
@@ -43,19 +41,16 @@ func Signup(c *gin.Context) {
 	}
 
 	// Create the user
-	user := models.Users{First_Name: body.First_Name, Last_Name: body.Last_Name, Email: body.Email, Password: string(hash), Status: true}
-
+	user := models.Users{First_Name: body.First_Name, Last_Name: body.Last_Name, Email: body.Email, Password: string(hash), Phone_Number: body.Phone_Number, Status: true}
 	var checkMail []models.Users
 	database.DB.Find(&checkMail)
 
 	// Checking username existence
-
 	for _, i := range checkMail {
 		if i.Email == user.Email {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Username Already Exist",
 			})
-
 			return
 		}
 	}
@@ -64,18 +59,14 @@ func Signup(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Name is required",
 		})
-
 		return
-
 	}
 
 	if user.Email == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Email is required",
 		})
-
 		return
-
 	}
 
 	if user.Password == "" {
@@ -84,7 +75,6 @@ func Signup(c *gin.Context) {
 		})
 
 		return
-
 	}
 
 	result := database.DB.Create(&user)
@@ -93,12 +83,10 @@ func Signup(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to create user",
 		})
-
 		return
 	}
 
 	// Respond
-
 	c.JSON(http.StatusOK, gin.H{})
 
 }
@@ -115,10 +103,8 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to read body ",
 		})
-
 		return
 	}
-
 	// Look up request user
 	var user models.Users
 	database.DB.First(&user, "email = ?", body.Email)
@@ -138,7 +124,6 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid email or password",
 		})
-
 		return
 	}
 
@@ -165,23 +150,236 @@ func Login(c *gin.Context) {
 		return
 	}
 	// Sent it back
-
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)
+	c.SetCookie("UserAuthorization", tokenString, 3600*24*30, "", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": user,
-		"token":   tokenString,
+		"name":   user.First_Name,
+		"status": user.Status,
+		"mobile": user.Phone_Number,
+		"token":  tokenString,
 	})
 
 }
 
 func Validate(c *gin.Context) {
+	//user := c.GetInt("id")
+	check, _ := c.Get("user")
 
-	user, _ := c.Get("user")
+	id := c.GetUint("id")
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": user,
+		"message": id,
+		"user":    check,
 	})
 
 }
+
+func AddAddress(c *gin.Context) {
+
+	id := c.GetUint("id")
+	var body struct {
+		//UsersID      uint
+		Name         string
+		Phone_number int
+		Pincode      int
+		House_Adress string
+		Area         string
+		Landmark     string
+		City         string
+	}
+
+	c.Bind(&body)
+
+	// Create
+
+	address := models.Address{
+		UsersID:      id,
+		Name:         body.Name,
+		Phone_number: body.Phone_number,
+		Pincode:      body.Pincode,
+		House_Adress: body.House_Adress,
+		Area:         body.Area,
+		Landmark:     body.Landmark,
+		City:         body.City,
+	}
+
+	result := database.DB.Create(&address)
+
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"message": "Error",
+		})
+	}
+	// Return it
+
+	c.JSON(200, gin.H{
+		"message": "Address addes sucessfully",
+	})
+
+}
+
+func SelectAddress(c *gin.Context) {
+
+	// Get id off the loggedin user
+	UsersID := c.GetUint("id")
+
+	// Find the product
+	var address []models.Address
+	// database.DB.First(&address, UsersID)
+	database.DB.Where("addresses.users_id = ?", UsersID).Find(&address)
+
+	for _, i := range address {
+		c.JSON(200, gin.H{
+			"Name":          i.Name,
+			"Phone Number":  i.Phone_number,
+			"Pincode":       i.Pincode,
+			"House Address": i.House_Adress,
+			"Area":          i.Area,
+			"Landmark":      i.Landmark,
+			"City":          i.City,
+			"id":            i.ID,
+		})
+	}
+
+}
+
+// func TotalPrice(c *gin.Context) {
+// 	var sum int
+// 	sum = 0
+// 	//UsersID := c.GetUint("id")
+// 	var products []models.Products
+// 	database.DB.Find(&products)
+// 	for _, i := range products {
+// 		sum = sum + i.Product_Price
+// 	}
+
+// 	c.JSON(200, gin.H{
+// 		"Total Price": sum,
+// 	})
+
+// }
+
+func AddToCart(c *gin.Context) {
+
+	id := c.GetUint("id")
+	var body struct {
+		ProductsID uint
+		Quantity   int
+	}
+	c.Bind(&body)
+
+	cart := models.Cart{
+		UsersId:    id,
+		ProductsId: body.ProductsID,
+		Quantity:   body.Quantity,
+	}
+
+	result := database.DB.Create(&cart)
+
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"message": "Error",
+		})
+	}
+	// Return it
+	c.JSON(200, gin.H{
+		"message": "Added To Cart",
+	})
+}
+
+func CartList(c *gin.Context) {
+	UsersID := c.GetUint("id")
+	var cart []models.Cart
+
+	database.DB.Where("carts.users_id = ?", UsersID).Find(&cart)
+	c.JSON(200, gin.H{
+		"Products": cart,
+	})
+}
+
+func RemoveFromCart(c *gin.Context) {
+
+	id := c.Param("id")
+	database.DB.Delete(&models.Cart{}, id)
+
+	c.JSON(200, gin.H{
+		"message": "Deleted succesfully",
+	})
+}
+
+func AddToWishlist(c *gin.Context) {
+	id := c.GetUint("id")
+	var body struct {
+		ProductsID uint
+	}
+	c.Bind(&body)
+
+	wishlist := models.Wishlist{
+		UsersID:    id,
+		ProductsID: body.ProductsID,
+	}
+
+	result := database.DB.Create(&wishlist)
+
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"message": "Error",
+		})
+	}
+	// Return it
+	c.JSON(200, gin.H{
+		"message": "Added To Wishlist",
+	})
+}
+
+func Wishlist(c *gin.Context) {
+
+	UsersID := c.GetUint("id")
+	var wishlist []models.Wishlist
+
+	database.DB.Where("wishlists.users_id = ?", UsersID).Find(&wishlist)
+
+	for _, i := range wishlist {
+		c.JSON(200, gin.H{
+			"UserId":    i.UsersID,
+			"ProductId": i.ProductsID,
+			"ID":        i.ID,
+		})
+	}
+}
+
+// 	func Cart(c *gin.Context) {
+// 		session, _ := Store.Get(c.Request, "session")
+// 		email := session.Values["userID"]
+// 		user_ID := fmt.Sprintf("%v", email)
+
+// 		db := database.GetDb()
+// 		var UserID int
+// 		db.Raw("SELECT id FROM users WHERE email=?", user_ID).Scan(&UserID)
+
+// 		// counter setting
+// 		var count int
+// 		db.Raw("SELECT COUNT(user_id) FROM carts WHERE user_id=?",UserID).Scan(&count)
+
+// 		//wishlist count
+// 		var wishlistcount int
+// 		db.Raw("SELECT COUNT(user_id) FROM wishlists WHERE user_id=?",UserID).Scan(&wishlistcount)
+
+// 		//cart count
+// 		var cartitemscout int
+// 		db.Raw("SELECT COUNT(user_id) FROM carts WHERE user_id=?",UserID).Scan(&cartitemscout)
+
+// 		// address
+// 		var place string
+// 		var pin string
+// 		db.Raw("SELECT place FROM useraddresses where user_id=?",UserID).Scan(&place)
+// 		db.Raw("SELECT pin FROM useraddresses where user_id=?",UserID).Scan(&pin)
+
+// 		var userinfos models.Users
+// 		db.Raw("SELECT first_name FROM users where email=?", user_ID).Scan(&userinfos)
+// 		UserName := userinfos.First_Name
+// 		var cartitems []models.Cart_Infos
+// 		db.Raw("SELECT carts.cartsid,users.id,users.first_name,rooms.room_name,rooms.discountprice,carts.cartsroomid,rooms.cover,rooms.room_price,rooms.category,rooms.description,carts.days,carts.total,carts.startdate,carts.endate FROM carts INNER JOIN rooms ON rooms.id=carts.cartsroomid INNER JOIN users ON carts.user_id=users.id WHERE user_id=?", UserID).Scan(&cartitems)
+
+// }

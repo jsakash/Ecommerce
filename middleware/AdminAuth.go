@@ -12,10 +12,10 @@ import (
 	"github.com/jsakash/ecommers/pkg/models"
 )
 
-func RequireAuth(c *gin.Context) {
+func AdminAuth(c *gin.Context) {
 
 	// Get the cookie off req
-	tokenString, err := c.Cookie("Authorization")
+	tokenString, err := c.Cookie("AdminAuthorization")
 
 	if err != nil {
 		c.AbortWithStatus(http.StatusUnauthorized)
@@ -43,15 +43,15 @@ func RequireAuth(c *gin.Context) {
 		}
 
 		// Find the user with token sub
-		var user models.Users
-		database.DB.First(&user, claims["sub"])
+		var admin models.Admin
+		database.DB.First(&admin, claims["sub"])
 
-		if user.ID == 0 {
+		if admin.ID == 0 {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
 
 		// Attach to request
-		c.Set("user", user)
+		c.Set("admin", admin)
 
 		// Continue
 

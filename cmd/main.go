@@ -18,7 +18,7 @@ func main() {
 	router := gin.New()
 	router.Use(gin.Logger())
 	routes.UserRoutes(router)
-
+	routes.AdminRoutes(router)
 	router.Run(":8080")
 
 }
