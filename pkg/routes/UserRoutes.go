@@ -22,6 +22,7 @@ func UserRoutes(UserRoutes *gin.Engine) {
 	UserRoutes.POST("/user/addwishlist", middleware.UserAuth, controllers.AddToWishlist)
 	UserRoutes.GET("/user/wishlist", middleware.UserAuth, controllers.Wishlist)
 	UserRoutes.GET("/user/validate", middleware.UserAuth, controllers.Validate)
+	UserRoutes.PATCH("/user/changepassword", middleware.UserAuth, controllers.ChangePasswors)
 	//UserRoutes.DELETE("/delete", middleware.UserAuth, controllers.DeleteOtp)
 	//UserRoutes.GET("/user/total", middleware.UserAuth, controllers.TotalPrice)
 }

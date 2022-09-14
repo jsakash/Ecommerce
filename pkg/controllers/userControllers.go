@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -12,16 +13,24 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var body struct {
-	First_Name   string
-	Last_Name    string
-	Email        string
-	Password     string
-	Phone_Number string
-	Status       bool
+func HashPassword(password string) string {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(bytes)
 }
 
 func Signup(c *gin.Context) {
+
+	var body struct {
+		First_Name   string
+		Last_Name    string
+		Email        string
+		Password     string
+		Phone_Number string
+		Status       bool
+	}
 
 	//Get the name/email/password off req body
 	if c.Bind(&body) != nil {
@@ -32,16 +41,18 @@ func Signup(c *gin.Context) {
 	}
 
 	// Hash the password
-	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
+	// hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to hash password",
-		})
-	}
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"error": "Failed to hash password",
+	// 	})
+	// }
+
+	hashPass := HashPassword(body.Password)
 
 	// Create the user
-	user := models.Users{First_Name: body.First_Name, Last_Name: body.Last_Name, Email: body.Email, Password: string(hash), Phone_Number: body.Phone_Number, Status: true}
+	user := models.Users{First_Name: body.First_Name, Last_Name: body.Last_Name, Email: body.Email, Password: hashPass, Phone_Number: body.Phone_Number, Status: true}
 	var checkMail []models.Users
 	database.DB.Find(&checkMail)
 
@@ -87,7 +98,9 @@ func Signup(c *gin.Context) {
 	}
 
 	// Respond
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Account Created",
+	})
 
 }
 
@@ -122,7 +135,7 @@ func Login(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid email or password",
+			"error": "Invalid password",
 		})
 		return
 	}
@@ -158,6 +171,44 @@ func Login(c *gin.Context) {
 		"status": user.Status,
 		"mobile": user.Phone_Number,
 		"token":  tokenString,
+	})
+
+}
+
+func ChangePasswors(c *gin.Context) {
+
+	email := c.Query("email")
+	password := c.Query("password")
+	newPassword := c.Query("newPassword")
+
+	// Look up request user
+	var user models.Users
+	database.DB.First(&user, "email = ?", email)
+
+	if user.ID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid email or password",
+		})
+
+		return
+	}
+
+	// Compare sent in pass with saved user pass hash
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid password",
+		})
+		return
+	}
+
+	newHashPass := HashPassword(newPassword)
+	//database.DB.First(&user, email)
+	database.DB.Model(&user).Where("email=?", email).Update("password", newHashPass)
+
+	c.JSON(200, gin.H{
+		"message": "Password changed successfully",
 	})
 
 }
@@ -214,7 +265,7 @@ func AddAddress(c *gin.Context) {
 	// Return it
 
 	c.JSON(200, gin.H{
-		"message": "Address addes sucessfully",
+		"message": "Address added sucessfully",
 	})
 
 }
@@ -348,38 +399,3 @@ func Wishlist(c *gin.Context) {
 		})
 	}
 }
-
-// 	func Cart(c *gin.Context) {
-// 		session, _ := Store.Get(c.Request, "session")
-// 		email := session.Values["userID"]
-// 		user_ID := fmt.Sprintf("%v", email)
-
-// 		db := database.GetDb()
-// 		var UserID int
-// 		db.Raw("SELECT id FROM users WHERE email=?", user_ID).Scan(&UserID)
-
-// 		// counter setting
-// 		var count int
-// 		db.Raw("SELECT COUNT(user_id) FROM carts WHERE user_id=?",UserID).Scan(&count)
-
-// 		//wishlist count
-// 		var wishlistcount int
-// 		db.Raw("SELECT COUNT(user_id) FROM wishlists WHERE user_id=?",UserID).Scan(&wishlistcount)
-
-// 		//cart count
-// 		var cartitemscout int
-// 		db.Raw("SELECT COUNT(user_id) FROM carts WHERE user_id=?",UserID).Scan(&cartitemscout)
-
-// 		// address
-// 		var place string
-// 		var pin string
-// 		db.Raw("SELECT place FROM useraddresses where user_id=?",UserID).Scan(&place)
-// 		db.Raw("SELECT pin FROM useraddresses where user_id=?",UserID).Scan(&pin)
-
-// 		var userinfos models.Users
-// 		db.Raw("SELECT first_name FROM users where email=?", user_ID).Scan(&userinfos)
-// 		UserName := userinfos.First_Name
-// 		var cartitems []models.Cart_Infos
-// 		db.Raw("SELECT carts.cartsid,users.id,users.first_name,rooms.room_name,rooms.discountprice,carts.cartsroomid,rooms.cover,rooms.room_price,rooms.category,rooms.description,carts.days,carts.total,carts.startdate,carts.endate FROM carts INNER JOIN rooms ON rooms.id=carts.cartsroomid INNER JOIN users ON carts.user_id=users.id WHERE user_id=?", UserID).Scan(&cartitems)
-
-// }
