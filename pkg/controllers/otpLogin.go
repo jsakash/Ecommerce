@@ -88,18 +88,18 @@ func ValidateOtp(c *gin.Context) {
 	db := database.GetDb()
 	db.Raw("SELECT mobile FROM otps WHERE otp=?", sotp).Scan(&userNum)
 
-	c.JSON(200, gin.H{
-		"msg": userNum,
-	})
+	// c.JSON(200, gin.H{
+	// 	"msg": userNum,
+	// })
 
 	var user models.Users
 	//database.DB.Where("users.phone_number = ?", userNum).Find(&user)
 	database.DB.First(&user, "phone_number = ?", userNum)
 
-	c.JSON(200, gin.H{
-		"msg": user.First_Name,
-		"id":  user.ID,
-	})
+	// c.JSON(200, gin.H{
+	// 	"msg": user.First_Name,
+	// 	"id":  user.ID,
+	// })
 
 	// Look up request user
 	var otp models.Otp
@@ -107,7 +107,7 @@ func ValidateOtp(c *gin.Context) {
 
 	if user.ID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid email or password",
+			"error": "Invalid OTP",
 		})
 
 		return
