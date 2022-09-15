@@ -57,7 +57,9 @@ func AddProduct(c *gin.Context) {
 	}
 	// Return it
 
-	c.Status(200)
+	c.JSON(200, gin.H{
+		"message": "Product added",
+	})
 
 }
 
@@ -77,7 +79,7 @@ func ListAllProducts(c *gin.Context) {
 
 	// }
 
-	// //db := database.GetDb()
+	//db := database.GetDb()
 	var products []struct {
 		Product_Name  string
 		Brand_Name    string
@@ -188,7 +190,9 @@ func AddCategory(c *gin.Context) {
 		})
 	}
 	// Return it
-	c.Status(200)
+	c.JSON(200, gin.H{
+		"message": "Category added",
+	})
 
 }
 
@@ -252,5 +256,7 @@ func AddSize(c *gin.Context) {
 		})
 	}
 	// Return it
-	c.Status(200)
+	c.JSON(200, gin.H{
+		"message": "Size added",
+	})
 }

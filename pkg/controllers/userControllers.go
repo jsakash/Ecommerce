@@ -332,6 +332,8 @@ func AddToCart(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"message": "Error",
 		})
+
+		return
 	}
 	// Return it
 	c.JSON(200, gin.H{

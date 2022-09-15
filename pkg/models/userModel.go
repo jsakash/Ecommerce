@@ -31,9 +31,10 @@ type Address struct {
 
 type Cart struct {
 	gorm.Model
-	UsersId    uint
-	ProductsId uint
-	Quantity   int
+	UsersId     uint
+	ProductsId  uint
+	Quantity    int
+	Total_Price int
 }
 
 type Wishlist struct {
@@ -49,6 +50,8 @@ type Orders struct {
 	AddressID      uint
 	Payment_Method string
 	Status         string
+	Total          int
+	Payable_Amount int
 }
 
 type Otp struct {
