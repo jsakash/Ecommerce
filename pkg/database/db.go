@@ -32,7 +32,9 @@ func ConnectToDb() {
 		&models.Cart{},
 		&models.Wishlist{},
 		&models.Orders{},
+		&models.Ordereditems{},
 		&models.Otp{},
+		&models.Tax{},
 	)
 }
 

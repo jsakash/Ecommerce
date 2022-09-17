@@ -48,10 +48,18 @@ type Orders struct {
 	UsersID        uint
 	ProductsId     uint
 	AddressID      uint
+	Order_ID       string
 	Payment_Method string
-	Status         string
-	Total          int
-	Payable_Amount int
+	Order_Status   string
+	Total_Amount   int
+}
+
+type Ordereditems struct {
+	gorm.Model
+	UsersID      uint
+	ProductsID   uint
+	Order_ID     int
+	Order_Status string
 }
 
 type Otp struct {

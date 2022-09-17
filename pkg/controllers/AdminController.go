@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -137,4 +138,33 @@ func DeleteUser(c *gin.Context) {
 		"message": "Deleted succesfully",
 	})
 
+}
+
+func AddTax(c *gin.Context) {
+	taxCategory := c.Query("taxcategory")
+	tax := c.Query("Tax")
+	taxPer, _ := strconv.Atoi(tax)
+	Tax := models.Tax{Category: taxCategory, Tax: taxPer}
+	result := database.DB.Create(&Tax)
+
+	if result.Error != nil {
+		c.Status(400)
+		return
+	}
+	c.JSON(http.StatusAccepted, gin.H{
+		"message": "Success",
+	})
+}
+
+func UpdateTax(c *gin.Context) {
+
+	category := c.Query("category")
+	newTax := c.Query("newtax")
+	tax, _ := strconv.Atoi(newTax)
+	var Tax models.Tax
+	database.DB.Model(&Tax).Where("category = ?", category).Update("tax", tax)
+
+	c.JSON(200, gin.H{
+		"message": "Tax Updated",
+	})
 }

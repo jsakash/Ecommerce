@@ -24,5 +24,7 @@ func AdminRoutes(AdminRoutes *gin.Engine) {
 	AdminRoutes.GET("/admin/categorylist", middleware.AdminAuth, controllers.CatogoryList)
 	AdminRoutes.POST("/admin/addcolor", middleware.AdminAuth, controllers.AddColor)
 	AdminRoutes.POST("/admin/addsize", middleware.AdminAuth, controllers.AddSize)
+	AdminRoutes.POST("/admin/addtax", middleware.AdminAuth, controllers.AddTax)
+	AdminRoutes.PUT("/admin/updatetax", middleware.AdminAuth, controllers.UpdateTax)
 
 }

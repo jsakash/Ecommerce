@@ -7,3 +7,9 @@ type Admin struct {
 	Email    string
 	Password string
 }
+
+type Tax struct {
+	gorm.Model
+	Category string
+	Tax      int
+}
