@@ -35,6 +35,8 @@ func ConnectToDb() {
 		&models.Ordereditems{},
 		&models.Otp{},
 		&models.Tax{},
+		&models.Discount{},
+		&models.Coupon{},
 	)
 }
 

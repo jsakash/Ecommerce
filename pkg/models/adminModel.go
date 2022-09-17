@@ -13,3 +13,17 @@ type Tax struct {
 	Category string
 	Tax      int
 }
+
+type Discount struct {
+	gorm.Model
+	DiscountName       string
+	DiscountPercentage int
+	ProductId          int
+}
+
+type Coupon struct {
+	gorm.Model
+	CouponName       string
+	CouponCode       string
+	CouponPercentage int
+}
