@@ -260,3 +260,27 @@ func AddSize(c *gin.Context) {
 		"message": "Size added",
 	})
 }
+
+func SearchProduct(c *gin.Context) {
+
+	productName := c.Query("product")
+
+	var products []struct {
+		Product_Name  string
+		Brand_Name    string
+		Description   string
+		Product_Price int
+		Category      string
+		Color         string
+		Size          int
+		Stock         int
+	}
+
+	database.DB.Find(&products)
+
+	database.DB.Raw("SELECT product_name,brand_name,description,product_price,category,color,size,stock FROM products INNER JOIN categories on products.category_id = categories.id INNER JOIN colors ON products.colors_id = colors.id INNER JOIN sizes ON products.size_id = sizes.id WHERE product_name = ?", productName).Scan(&products)
+	c.JSON(200, gin.H{
+		"Products": products,
+	})
+
+}

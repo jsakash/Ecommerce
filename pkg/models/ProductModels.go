@@ -1,8 +1,6 @@
 package models
 
-import (
-	"gorm.io/gorm"
-)
+import "gorm.io/gorm"
 
 type Products struct {
 	gorm.Model
@@ -14,10 +12,9 @@ type Products struct {
 	ColorsID      uint
 	SizeID        uint
 	Stock         int
-	Cart Cart
-	Wishlist Wishlist
-	Orders Orders
-	
+	Cart          Cart
+	CartInfo      CartInfo
+	Wishlist      Wishlist
 }
 
 type Category struct {
@@ -36,4 +33,25 @@ type Size struct {
 	gorm.Model
 	Size     int
 	Products Products
+}
+type Discount struct {
+	gorm.Model
+	DiscountName       string
+	DiscountPercentage int
+	ProductId          int
+}
+
+type Wallet struct {
+	UsersID uint
+	Balance int
+}
+
+type Checkoutinfo struct {
+	gorm.Model
+	UsersID        int
+	Discount       int
+	CouponDiscount int
+	CouponCode     string
+	TotalMrp       int
+	Total          int
 }

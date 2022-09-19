@@ -3,7 +3,6 @@ package controllers
 import (
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +13,9 @@ import (
 
 func CreateAdmin(c *gin.Context) {
 
-	admin := models.Admin{Email: "akashjs@gmail.com", Password: "akashjs"}
+	Email := os.Getenv("ADMIN_EMAIL")
+	Password := os.Getenv("ADMIN_PASSWORD")
+	admin := models.Admin{Email: Email, Password: Password}
 	result := database.DB.Create(&admin)
 
 	if result.Error != nil {
@@ -78,93 +79,5 @@ func AdminLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 
 		"token": tokenString,
-	})
-}
-func AdminValidate(c *gin.Context) {
-	admin, _ := c.Get("admin")
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": admin,
-	})
-}
-func ListAllUsers(c *gin.Context) {
-
-	var users []models.Users
-	database.DB.Find(&users)
-	for _, i := range users {
-		c.JSON(200, gin.H{
-			"Name":  i.First_Name,
-			"Email": i.Email,
-			"id":    i.ID,
-		})
-	}
-}
-
-func BlockUser(c *gin.Context) {
-
-	var user models.Users
-	var updateStatus bool = false
-	id := c.Param("id")
-
-	database.DB.First(&user, id)
-	database.DB.Model(&user).Where("id=?", id).Update("status", updateStatus)
-
-	c.JSON(200, gin.H{
-		"message": "User Blocked",
-	})
-}
-
-func UnBlockUser(c *gin.Context) {
-
-	var user models.Users
-	var updateStatus bool = true
-	id := c.Param("id")
-
-	database.DB.First(&user, id)
-	database.DB.Model(&user).Where("id=?", id).Update("status", updateStatus)
-
-	c.JSON(200, gin.H{
-		"message": "User UnBlocked",
-	})
-
-}
-
-func DeleteUser(c *gin.Context) {
-
-	id := c.Param("id")
-	database.DB.Delete(&models.Users{}, id)
-
-	c.JSON(200, gin.H{
-		"message": "Deleted succesfully",
-	})
-
-}
-
-func AddTax(c *gin.Context) {
-	taxCategory := c.Query("taxcategory")
-	tax := c.Query("Tax")
-	taxPer, _ := strconv.Atoi(tax)
-	Tax := models.Tax{Category: taxCategory, Tax: taxPer}
-	result := database.DB.Create(&Tax)
-
-	if result.Error != nil {
-		c.Status(400)
-		return
-	}
-	c.JSON(http.StatusAccepted, gin.H{
-		"message": "Success",
-	})
-}
-
-func UpdateTax(c *gin.Context) {
-
-	category := c.Query("category")
-	newTax := c.Query("newtax")
-	tax, _ := strconv.Atoi(newTax)
-	var Tax models.Tax
-	database.DB.Model(&Tax).Where("category = ?", category).Update("tax", tax)
-
-	c.JSON(200, gin.H{
-		"message": "Tax Updated",
 	})
 }

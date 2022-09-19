@@ -2,6 +2,25 @@ package models
 
 import "gorm.io/gorm"
 
+type Admin struct {
+	gorm.Model
+	Email    string
+	Password string
+}
+
+type Tax struct {
+	gorm.Model
+	Category string
+	Tax      int
+}
+
+type Coupon struct {
+	gorm.Model
+	CouponName       string
+	CouponCode       string
+	CouponPercentage int
+}
+
 type Users struct {
 	gorm.Model
 	First_Name   string
@@ -14,6 +33,7 @@ type Users struct {
 	Cart         Cart
 	Wishlist     Wishlist
 	Orders       Orders
+	Wallet       Wallet
 }
 
 type Address struct {
@@ -37,6 +57,16 @@ type Cart struct {
 	Total_Price int
 }
 
+type CartInfo struct {
+	gorm.Model
+	UsersId      uint
+	ProductsID   uint
+	CartsID      uint
+	Price        int
+	Discount     int
+	SellingPrice int
+}
+
 type Wishlist struct {
 	gorm.Model
 	UsersID    uint
@@ -46,20 +76,26 @@ type Wishlist struct {
 type Orders struct {
 	gorm.Model
 	UsersID        uint
-	ProductsId     uint
 	AddressID      uint
-	Order_ID       string
+	OrderID        string
+	Discount       int
+	CouponDiscount int
+	CouponCode     string
 	Payment_Method string
-	Order_Status   string
 	Total_Amount   int
+	Status         bool
 }
 
 type Ordereditems struct {
 	gorm.Model
 	UsersID      uint
 	ProductsID   uint
-	Order_ID     int
-	Order_Status string
+	Order_ID     string
+	Product_Name string
+	Price        int
+	SellingPrice int
+	Discount     int
+	Status       string
 }
 
 type Otp struct {

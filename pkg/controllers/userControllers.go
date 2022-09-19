@@ -295,18 +295,18 @@ func SelectAddress(c *gin.Context) {
 
 }
 
-// func TotalPrice(c *gin.Context) {
-// 	var sum int
-// 	sum = 0
-// 	//UsersID := c.GetUint("id")
-// 	var products []models.Products
-// 	database.DB.Find(&products)
-// 	for _, i := range products {
-// 		sum = sum + i.Product_Price
+// func EditProfile() {
+
+// 	var body struct{
+// 	First_Name   string
+// 	Last_Name    string
+// 	Email        string
+
+// 	Phone_Number string
 // 	}
+// 	var user models.Users
 
-// 	c.JSON(200, gin.H{
-// 		"Total Price": sum,
-// 	})
+// 	database.DB.Raw("UPDATE users SET first_name ")
 
+// 	db.Save(&user)
 // }
