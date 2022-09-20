@@ -17,8 +17,9 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger())
+	//router.In
 	routes.UserRoutes(router)
 	routes.AdminRoutes(router)
 	router.Run(":8080")
-
+	router.LoadHTMLGlob("./templates/*")
 }

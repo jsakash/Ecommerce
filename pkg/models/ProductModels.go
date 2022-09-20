@@ -49,6 +49,7 @@ type Wallet struct {
 type Checkoutinfo struct {
 	gorm.Model
 	UsersID        int
+	OrderID        string
 	Discount       int
 	CouponDiscount int
 	CouponCode     string

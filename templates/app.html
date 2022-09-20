@@ -1,0 +1,182 @@
+<html>
+<style>
+  body {
+    text-align: center;
+    padding: 40px 0;
+    background: #EBF0F5;
+  }
+
+  .card {
+    align-self: center;
+    background: rgb(255, 255, 255);
+    padding: 90px;
+    border-radius: 4px;
+    box-shadow: 0 2px 3px #C8D0D8;
+    display: inline-block;
+    margin: 0 auto;
+  }
+  i{
+    color: #000000;
+    font-size: 100px;
+    line-height: 200px;
+    margin-left:-15px;
+  }
+</style>
+<div class="card">
+  <i class="checkmark">
+    <img src="https://cdn-icons-png.flaticon.com/512/4108/4108042.png"alt="" width="200px" height="200px">
+  </i>
+  
+  <div style="    display: flex;
+  margin-top: 10%;
+  flex-direction: row;
+  align-items: center;
+  align-content: center;
+  flex-wrap: nowrap;">
+    <h3 style="color:rgb(0, 0, 0);"> OrderID :&nbsp;</h3><label name="orderid" id="orderid"
+      style="color:rgb(0, 0, 0);">{{.OrderId}}</label><br>
+  </div>
+  <div style="    display: flex;
+margin-top: 1%;
+flex-direction: row;
+align-items: center;
+align-content: center;
+flex-wrap: nowrap;">
+<!-- takes User Id from page variables and passes to the function2 -->
+    <h3 style="color:rgb(0, 0, 0);">User Id :</h3><label name="userid" id="userid" style="color:rgb(0, 0, 0);">&nbsp;{{.UserID}}</label><br>
+  </div>
+  <div style="    display: flex;
+margin-top: 1%;
+flex-direction: row;
+align-items: center;
+align-content: center;
+flex-wrap: nowrap;">
+<!-- takes consultation fee from page variables and passes to the function2 -->
+    <h3 id="totalprice" style="color:rgb(0, 0, 0);">Consultation Fee :&nbsp;{{.TotalPrice}}</h3>
+  </div>
+  <div style="align-items:center;">
+    <button id="rzp-button1" class="btn btn-outline-dark btn-lg" style="padding: 1.3em 3em;
+font-size: 16px;
+text-transform: uppercase;
+letter-spacing: 2.5px;
+font-weight: 500;
+color: #000;
+background-color: #fff;
+border: none;
+border-radius: 45px;
+box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+transition: all 0.3s ease 0s;
+cursor: pointer;
+outline: none; ; margin-bottom: 10px; width: 300px;"><i class="fas fa-money-bill"></i> Pay The Amount</button>
+  </div>
+</div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script>
+  var userId = document.getElementById("userid").innerHTML;
+  var orderID = document.getElementById("orderid").innerHTML;
+  var options = {
+    "key": "rzp_test_XNE5NbTY0RM4SH", // Enter the Key ID generated from the Dashboard
+    "amount": "{{.AmountInSubUnits}}",
+    "currency": "INR",
+    "description": "DearDoctor",
+    "image": "https://explorationsquared.com/the-cutest-small-monkey-breeds/",
+    "order_id": '{{.OrderIdCreated}}',
+    "prefill":
+    {
+      "email": "{{.Email}}",
+      "contact": "{{.Phone_Number}}",
+    },
+    config: {
+      display: {
+        blocks: {
+          hdfc: { //name for HDFC block
+            name: "Pay using HDFC Bank",
+            instruments: [
+              {
+                method: "card",
+                issuers: ["HDFC"]
+              },
+              {
+                method: "netbanking",
+                banks: ["HDFC"]
+              },
+            ]
+          },
+          other: { //  name for other block
+            name: "Other Payment modes",
+            instruments: [
+              {
+                method: "card",
+                issuers: ["ICIC"]
+              },
+              {
+                method: 'netbanking',
+              }
+            ]
+          }
+        },
+        hide: [
+          {
+            method: "upi"
+          }
+        ],
+        sequence: ["block.hdfc", "block.other"],
+        preferences: {
+          show_default_blocks: false // Should Checkout show its default blocks?
+        }
+      }
+    },
+
+
+
+    "handler": function (response) {
+      verifyPayment(response, userId, order_id);//calls to store data in database
+
+    },
+    "modal": {
+      "ondismiss": function () {
+        if (confirm("Are you sure, you want to close the form?")) {
+          txt = "You pressed OK!";
+          console.log("Checkout form closed by the user");
+        } else {
+          txt = "You pressed Cancel!";
+          console.log("Complete the Payment")
+        }
+      }
+    }
+  };
+  var rzp1 = new Razorpay(options);
+  document.getElementById('rzp-button1').onclick = function (e) {
+    rzp1.open();
+    e.preventDefault();
+  }
+
+
+  function verifyPayment(res, user_id, orderid) {
+    console.log('function 2')
+    $.ajax({
+
+      //passes details as url params
+      url: `/payment-success?user_id=${user_id}&payment_id=${res.razorpay_payment_id}&order_id=${res.razorpay_order_id}
+      &signature=${res.razorpay_signature}&id=${order_id}`,
+      method: 'Get',
+      success: (response) => {
+        if (response.status) {
+          console.log('test success')
+          location.href = '/success'
+        }else {
+          console.log('test failed')
+          swal({
+            title: "Sorry, Payment Failed",
+            icon: 'warning',
+            dangerMode: true,
+          })
+          location.replace('/failed')
+        }
+      }
+    })
+  }
+</script>
+
+</html>

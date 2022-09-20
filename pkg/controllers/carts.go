@@ -122,6 +122,12 @@ func CartCheckoutDetails(c *gin.Context) {
 	var checkoutinfo models.Checkoutinfo
 	var balance int
 
+	// Making random order id
+	rand.Seed(time.Now().UnixNano())
+	value := rand.Intn(999999-100000) + 100000
+	id := strconv.Itoa(value)
+	orderID := "OID" + id
+
 	database.DB.Raw("SELECT balance FROM wallets WHERE users_id = ?", UsersID).Scan(&balance)
 	c.JSON(200, gin.H{
 		"Balance": balance,
@@ -179,6 +185,7 @@ func CartCheckoutDetails(c *gin.Context) {
 	if couponcode == "" {
 		database.DB.First(&checkoutinfo)
 		checkoutinfo.UsersID = int(UsersID)
+		checkoutinfo.OrderID = orderID
 		checkoutinfo.Discount = discountAmount
 		checkoutinfo.CouponDiscount = 0
 		checkoutinfo.CouponCode = "Not Applied"
@@ -206,6 +213,7 @@ func CartCheckoutDetails(c *gin.Context) {
 
 	database.DB.First(&checkoutinfo)
 	checkoutinfo.UsersID = int(UsersID)
+	checkoutinfo.OrderID = orderID
 	checkoutinfo.Discount = discountAmount
 	checkoutinfo.CouponDiscount = STotalAmpount
 	checkoutinfo.CouponCode = couponcode
@@ -226,6 +234,7 @@ func CartCheckout(c *gin.Context) {
 	value := rand.Intn(999999-100000) + 100000
 	id := strconv.Itoa(value)
 	orderID = "OID" + id
+
 	var checkoutinfo models.Checkoutinfo
 	database.DB.First(&checkoutinfo)
 	c.JSON(200, gin.H{
@@ -354,13 +363,16 @@ func CancelOrder(c *gin.Context) {
 }
 
 func WalletBalance(c *gin.Context) {
-
+	OrderID := 12345
 	userID := c.GetUint("id")
 	var balance int
 
 	database.DB.Raw("SELECT balance FROM wallets WHERE users_id = ?", userID).Scan(&balance)
-	c.JSON(200, gin.H{
-		"Balance": balance,
+	// c.JSON(200, gin.H{
+	// 	"Balance": balance,
+	// })
+	c.HTML(200, "app.html", gin.H{
+		"OrderId": OrderID,
 	})
 
 }

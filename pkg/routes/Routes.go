@@ -56,17 +56,22 @@ func UserRoutes(UserRoutes *gin.Engine) {
 	UserRoutes.GET("/user/wishlist", middleware.UserAuth, controllers.Wishlist)
 	UserRoutes.GET("/user/validate", middleware.UserAuth, controllers.Validate)
 	UserRoutes.GET("/user/cartcheckoutdetails", middleware.UserAuth, controllers.CartCheckoutDetails)
-	UserRoutes.GET("user/product/search", middleware.UserAuth, controllers.SearchProduct)
+	UserRoutes.GET("/user/product/search", middleware.UserAuth, controllers.SearchProduct)
 	UserRoutes.GET("/user/cartcheckout", middleware.UserAuth, controllers.CartCheckout)
 	UserRoutes.GET("/user/oders", middleware.UserAuth, controllers.OrderedItems)
-	UserRoutes.GET("/user/wallet/balance", middleware.UserAuth, controllers.WalletBalance)
+	UserRoutes.GET("/user/wallet/balance", controllers.WalletBalance)
+	UserRoutes.GET("/user/payment/razorpay", controllers.RazorPay)
+	UserRoutes.GET("/success", controllers.Success)
 	// PUT Router
 	UserRoutes.PUT("user/profile/edit", middleware.UserAuth, controllers.EditProfile)
 	//PATCH Routes
 	UserRoutes.PATCH("/user/changepassword", middleware.UserAuth, controllers.ChangePasswors)
 	//DELETE Routes
 	UserRoutes.DELETE("/user/removefromcart/:id", middleware.UserAuth, controllers.RemoveFromCart)
+	UserRoutes.LoadHTMLGlob("./templates/*")
+	//loading gohtml files from templates directory
 
 	//UserRoutes.DELETE("/delete", middleware.UserAuth, controllers.DeleteOtp)
 	//UserRoutes.GET("/user/total", middleware.UserAuth, controllers.TotalPrice)
+
 }
