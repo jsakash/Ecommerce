@@ -102,6 +102,12 @@ func Signup(c *gin.Context) {
 		"message": "Account Created",
 	})
 
+	var users models.Users
+	database.DB.First(&users, "email = ?", body.Email)
+
+	wallet := models.Wallet{UsersID: users.ID, Balance: 0}
+	database.DB.Create(&wallet)
+
 }
 
 func Login(c *gin.Context) {
@@ -177,7 +183,7 @@ func Login(c *gin.Context) {
 
 func ChangePasswors(c *gin.Context) {
 
-	email := c.Query("email")
+	email := c.GetString("email")
 	password := c.Query("password")
 	newPassword := c.Query("newPassword")
 
@@ -187,7 +193,7 @@ func ChangePasswors(c *gin.Context) {
 
 	if user.ID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid email or password",
+			"error": "Invalid user password",
 		})
 
 		return
@@ -295,18 +301,6 @@ func SelectAddress(c *gin.Context) {
 
 }
 
-// func EditProfile() {
+func EditProfile(c *gin.Context) {
 
-// 	var body struct{
-// 	First_Name   string
-// 	Last_Name    string
-// 	Email        string
-
-// 	Phone_Number string
-// 	}
-// 	var user models.Users
-
-// 	database.DB.Raw("UPDATE users SET first_name ")
-
-// 	db.Save(&user)
-// }
+}

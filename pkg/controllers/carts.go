@@ -22,6 +22,15 @@ func AddToCart(c *gin.Context) {
 	}
 	c.Bind(&body)
 
+	var stock int
+	database.DB.Raw("SELECT stock FROM products WHERE id = ?", body.ProductsID).Scan(&stock)
+	if stock == 0 {
+		c.JSON(400, gin.H{
+			"message": "Product is Out Of Stock",
+		})
+		return
+	}
+
 	cart := models.Cart{
 		UsersId:    UsersID,
 		ProductsId: body.ProductsID,
@@ -155,15 +164,14 @@ func CartCheckoutDetails(c *gin.Context) {
 		//return
 	}
 	if ApplyWallet == "apply" {
-		TotalAmpount = TotalAmpount - balance
-		c.JSON(200, gin.H{
-			"new balance": TotalAmpount,
-		})
+
 		if balance > TotalAmpount {
+			TotalAmpount = 0
 			newBalance := balance - TotalAmpount
 			database.DB.Model(&models.Wallet{}).Where("users_id = ?", UsersID).Update("balance", newBalance)
 		} else if balance < TotalAmpount {
-			newBalance := TotalAmpount - balance
+			TotalAmpount = TotalAmpount - balance
+			newBalance := 0
 			database.DB.Model(&models.Wallet{}).Where("users_id = ?", UsersID).Update("balance", newBalance)
 		}
 	}
@@ -265,7 +273,8 @@ func placeOrder(uid uint, oid string) {
 		Quantity      int
 		Discount      int
 	}
-
+	var stock int
+	var product models.Products
 	database.DB.Find(&cartinfo)
 	database.DB.Raw("SELECT products_id,product_name,brand_name,product_price,discount FROM cart_infos INNER JOIN products on cart_infos.products_id = products.id WHERE users_id=?", usersID).Scan(&cartinfo)
 	// c.JSON(200, gin.H{
@@ -279,9 +288,10 @@ func placeOrder(uid uint, oid string) {
 		Sprice := i.Product_Price - (i.Product_Price * i.Discount / 100)
 
 		Disc := i.Product_Price * i.Discount / 100
-
 		ordereditems := models.Ordereditems{UsersID: usersID, ProductsID: Pid, Order_ID: orderId, Product_Name: Pname, Price: price, SellingPrice: Sprice, Discount: Disc, Status: status}
 		database.DB.Create(&ordereditems)
+		database.DB.Raw("SELECT stock FROM products WHERE id = ?", Pid).Scan(&stock)
+		database.DB.Raw("UPDATE products SET stock = ? WHERE id = ?", stock-1, Pid).Scan(&product)
 
 	}
 
@@ -324,7 +334,7 @@ func CancelOrder(c *gin.Context) {
 	database.DB.Model(&items).Where("id=?", id).Update("status", updateStatus)
 
 	c.JSON(200, gin.H{
-		"message": "User UnBlocked",
+		"message": "Order Cancelled",
 	})
 
 	var price int
@@ -332,10 +342,6 @@ func CancelOrder(c *gin.Context) {
 
 	var balance int
 	database.DB.Raw("SELECT balance FROM wallets WHERE users_id = ?", userID).Scan(&balance)
-	c.JSON(200, gin.H{
-		"message": balance,
-		"ask":     price + balance,
-	})
 
 	newBalance := balance + price
 	//var wallet models.Wallet

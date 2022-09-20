@@ -60,6 +60,8 @@ func UserRoutes(UserRoutes *gin.Engine) {
 	UserRoutes.GET("/user/cartcheckout", middleware.UserAuth, controllers.CartCheckout)
 	UserRoutes.GET("/user/oders", middleware.UserAuth, controllers.OrderedItems)
 	UserRoutes.GET("/user/wallet/balance", middleware.UserAuth, controllers.WalletBalance)
+	// PUT Router
+	UserRoutes.PUT("user/profile/edit", middleware.UserAuth, controllers.EditProfile)
 	//PATCH Routes
 	UserRoutes.PATCH("/user/changepassword", middleware.UserAuth, controllers.ChangePasswors)
 	//DELETE Routes
