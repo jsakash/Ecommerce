@@ -41,6 +41,7 @@ func ConnectToDb() {
 		&models.Cart{},
 		&models.Wallet{},
 		&models.Checkoutinfo{},
+		&models.Check{},
 	)
 }
 

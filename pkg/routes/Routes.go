@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jsakash/ecommers/middleware"
 	"github.com/jsakash/ecommers/pkg/controllers"
@@ -61,7 +63,16 @@ func UserRoutes(UserRoutes *gin.Engine) {
 	UserRoutes.GET("/user/oders", middleware.UserAuth, controllers.OrderedItems)
 	UserRoutes.GET("/user/wallet/balance", controllers.WalletBalance)
 	UserRoutes.GET("/user/payment/razorpay", controllers.RazorPay)
-	UserRoutes.GET("/success", controllers.Success)
+	UserRoutes.GET("/payment-success", controllers.RPSuccess)
+	UserRoutes.GET("/success", controllers.SuccesPage)
+
+	UserRoutes.GET("/failed", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "failed.html", gin.H{
+			"title": "Main website",
+		})
+	})
+
+	//UserRoutes.GET("/user/payment/razorpay/successpage", controllers.Exec)
 	// PUT Router
 	UserRoutes.PUT("user/profile/edit", middleware.UserAuth, controllers.EditProfile)
 	//PATCH Routes

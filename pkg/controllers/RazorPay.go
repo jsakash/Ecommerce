@@ -1,11 +1,19 @@
 package controllers
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jsakash/ecommers/pkg/database"
 	"github.com/jsakash/ecommers/pkg/models"
 	razorpay "github.com/razorpay/razorpay-go"
 )
+
+//var tpl *template.Template
+type UserHandler interface {
+	Success() http.HandlerFunc
+}
 
 func RazorPay(c *gin.Context) {
 
@@ -50,28 +58,53 @@ func RazorPay(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.JSON(400, gin.H{
+		//http.Response.Status
+		c.JSON(200, gin.H{
 			"msg": orderIDCreated,
 		})
 		return
 	}
 }
 
-func Success(c *gin.Context) {
-	// id := c.Query("user_id")
-	// razorPaymentId := c.Query("payment_id")
-	// razorPayOrderID := c.Query("order_id")
-	// signature := c.Query("signature")
-	// orderId := c.Query("id")
+func RPSuccess(c *gin.Context) {
 
-	c.HTML(200, "success.html", gin.H{
-		// "id":      id,
-		// "rpid":    razorPaymentId,
-		// "rpoid":   razorPayOrderID,
-		// "sign":    signature,
-		// "orderid": orderId,
+	id := c.Query("user_id")
+	razorPaymentId := c.Query("payment_id")
+	razorPayOrderID := c.Query("order_id")
+	signature := c.Query("signature")
+	orderId := c.Query("id")
+
+	check := models.Check{
+		UserId:          id,
+		RazorPaymentId:  razorPaymentId,
+		RazorPayOrderID: razorPayOrderID,
+		Signature:       signature,
+		OrderId:         orderId,
+	}
+	database.DB.Create(&check)
+	c.JSON(200, gin.H{
+		"status": true,
 	})
 
+	var checkinfo models.Checkoutinfo
+	database.DB.Raw("DELETE FROM checkoutinfos WHERE users_id = ?", id).Scan(&checkinfo)
+	uid, _ := strconv.ParseUint(id, 10, 64)
+	//fmt.Printf("%d\n", val_uint)
+	placeOrder(uint(uid), orderId)
 }
 
+// func Exec(c *gin.Context) {
+
+// 	c.HTML(200, "success.html", nil)
+// }
+
 //.Execute(c.Writer, pageVariables)
+
+// type userHandler struct {
+// 	userService service.UserService
+// }
+
+func SuccesPage(c *gin.Context) {
+
+	c.HTML(200, "success.html", nil)
+}

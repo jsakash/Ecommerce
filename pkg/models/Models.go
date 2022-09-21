@@ -83,7 +83,7 @@ type Orders struct {
 	CouponCode     string
 	Payment_Method string
 	Total_Amount   int
-	Status         bool
+	Status         string
 }
 
 type Ordereditems struct {
@@ -102,4 +102,13 @@ type Otp struct {
 	gorm.Model
 	Mobile string
 	Otp    string
+}
+
+type Check struct {
+	gorm.Model
+	UserId          string
+	RazorPaymentId  string
+	RazorPayOrderID string
+	Signature       string
+	OrderId         string
 }

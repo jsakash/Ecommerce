@@ -43,7 +43,7 @@ align-items: center;
 align-content: center;
 flex-wrap: nowrap;">
 <!-- takes User Id from page variables and passes to the function2 -->
-    <h3 style="color:rgb(0, 0, 0);">User Id :</h3><label name="userid" id="userid" style="color:rgb(0, 0, 0);">&nbsp;{{.UserID}}</label><br>
+    <h3 style="color:rgb(0, 0, 0);">User Id :&nbsp;</h3><label name="userid" id="userid" style="color:rgb(0, 0, 0);">{{.UserID}}</label><br>
   </div>
   <div style="    display: flex;
 margin-top: 1%;
@@ -73,13 +73,13 @@ outline: none; ; margin-bottom: 10px; width: 300px;"><i class="fas fa-money-bill
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
 <script>
-  var userId = document.getElementById("userid").innerHTML;
+  var UserID = document.getElementById("userid").innerHTML;
   var orderID = document.getElementById("orderid").innerHTML;
   var options = {
     "key": "rzp_test_XNE5NbTY0RM4SH", // Enter the Key ID generated from the Dashboard
     "amount": "{{.AmountInSubUnits}}",
     "currency": "INR",
-    "description": "DearDoctor",
+    "description": "Ecommerce",
     "image": "https://explorationsquared.com/the-cutest-small-monkey-breeds/",
     "order_id": '{{.OrderIdCreated}}',
     "prefill":
@@ -131,7 +131,8 @@ outline: none; ; margin-bottom: 10px; width: 300px;"><i class="fas fa-money-bill
 
 
     "handler": function (response) {
-      verifyPayment(response, userId, order_id);//calls to store data in database
+      console.log(response)
+      verifyPayment(response, UserID , orderID);//calls to store data in database
 
     },
     "modal": {
@@ -153,26 +154,30 @@ outline: none; ; margin-bottom: 10px; width: 300px;"><i class="fas fa-money-bill
   }
 
 
-  function verifyPayment(res, user_id, orderid) {
+  function verifyPayment(res, userid, orderid) {
     console.log('function 2')
     $.ajax({
 
       //passes details as url params
-      url: `/payment-success?user_id=${user_id}&payment_id=${res.razorpay_payment_id}&order_id=${res.razorpay_order_id}
-      &signature=${res.razorpay_signature}&id=${order_id}`,
-      method: 'Get',
+      url: `/payment-success?user_id=${userid}&payment_id=${res.razorpay_payment_id}&order_id=${res.razorpay_order_id}
+      &signature=${res.razorpay_signature}&id=${orderid}`,
+      method: 'GET',
+      
       success: (response) => {
+        console.log("kkkkkk")
+        console.log(response)
         if (response.status) {
           console.log('test success')
           location.href = '/success'
         }else {
           console.log('test failed')
-          swal({
-            title: "Sorry, Payment Failed",
-            icon: 'warning',
-            dangerMode: true,
-          })
-          location.replace('/failed')
+          // swal({
+          //   title: "Sorry, Payment Failed",
+          //   icon: 'warning',
+          //   dangerMode: true,
+          // })
+          // location.replace('/failed')
+          alert("error")
         }
       }
     })

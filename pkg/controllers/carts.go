@@ -228,6 +228,8 @@ func CartCheckout(c *gin.Context) {
 	address := c.Query("AddressID")
 	addressID, _ := strconv.Atoi(address)
 	cod := "COD"
+	RazorPay := "RAZORPAY"
+	OrderStatus := "PENDING        "
 	var orderID string
 	// Making random order id
 	rand.Seed(time.Now().UnixNano())
@@ -253,8 +255,8 @@ func CartCheckout(c *gin.Context) {
 		"tot":        total,
 	})
 
-	if PaymentMethod == "COD" {
-		orders := models.Orders{UsersID: userID, AddressID: uint(addressID), OrderID: orderID, Discount: discount, CouponDiscount: couponDiscount, CouponCode: couponCode, Payment_Method: cod, Total_Amount: total, Status: true}
+	if PaymentMethod == cod {
+		orders := models.Orders{UsersID: userID, AddressID: uint(addressID), OrderID: orderID, Discount: discount, CouponDiscount: couponDiscount, CouponCode: couponCode, Payment_Method: cod, Total_Amount: total, Status: OrderStatus}
 		result := database.DB.Create(&orders)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
@@ -267,13 +269,18 @@ func CartCheckout(c *gin.Context) {
 		})
 		placeOrder(userID, orderID)
 	}
+	if PaymentMethod == RazorPay {
+		orders := models.Orders{UsersID: userID, AddressID: uint(addressID), OrderID: orderID, Discount: discount, CouponDiscount: couponDiscount, CouponCode: couponCode, Payment_Method: cod, Total_Amount: total, Status: OrderStatus}
+		database.DB.Create(&orders)
+	}
 
 }
 
 func placeOrder(uid uint, oid string) {
 	usersID := uid
 	orderId := oid
-	status := "Confirmed"
+	status := "CONFIRMED"
+
 	var cartinfo []struct {
 		ProductsID    uint
 		Product_Name  string
@@ -303,11 +310,14 @@ func placeOrder(uid uint, oid string) {
 		database.DB.Raw("UPDATE products SET stock = ? WHERE id = ?", stock-1, Pid).Scan(&product)
 
 	}
-
+	var order models.Orders
+	database.DB.Raw("UPDATE orders SET status = ? WHERE order_id = ?", status, orderId).Scan(&order)
 	var cart models.Cart
 	database.DB.Raw("DELETE FROM carts WHERE users_id = ?", usersID).Scan(&cart)
 	var cartinfodel models.CartInfo
 	database.DB.Raw("DELETE FROM cart_infos WHERE users_id = ?", usersID).Scan(&cartinfodel)
+	var checkinfo models.Checkoutinfo
+	database.DB.Raw("DELETE FROM checkoutinfos WHERE users_id = ?", usersID).Scan(&checkinfo)
 }
 
 func OrderedItems(c *gin.Context) {
