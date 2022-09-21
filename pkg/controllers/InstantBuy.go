@@ -23,6 +23,13 @@ func BuyNow(c *gin.Context) {
 	var product models.Products
 	database.DB.First(&product, "id = ?", ProductId)
 
+	if product.Stock == 0 {
+		c.JSON(400, gin.H{
+			"message": "Product is out of stock",
+		})
+		return
+	}
+
 	var checkoutinfo models.Checkoutinfo
 	database.DB.First(&checkoutinfo, "users_id = ?", UsersID)
 
