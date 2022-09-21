@@ -57,6 +57,7 @@ func AddToCart(c *gin.Context) {
 		deductdiscount := discount.DiscountPercentage
 		cartInfo := models.CartInfo{UsersId: UsersID, ProductsID: body.ProductsID, CartsID: cart.ID, Discount: deductdiscount}
 		database.DB.Create(&cartInfo)
+
 		// c.JSON(200, gin.H{
 		// 	"new id":        i.Products_id,
 		// 	"new":           i.Product_Price,
@@ -119,8 +120,16 @@ func CartCheckoutDetails(c *gin.Context) {
 	ApplyWallet := c.Query("ApplyWallet")
 	var TotalAmpount int
 	var TotalMrp int
-	var checkoutinfo models.Checkoutinfo
+	/// checkoutinfo models.Checkoutinfo
 	var balance int
+
+	var checkoutinfo models.Checkoutinfo
+	database.DB.First(&checkoutinfo, "users_id = ?", UsersID)
+
+	if checkoutinfo.ID == 0 {
+		checkInfo := models.Checkoutinfo{UsersID: int(UsersID)}
+		database.DB.Create(&checkInfo)
+	}
 
 	// Making random order id
 	rand.Seed(time.Now().UnixNano())
@@ -183,16 +192,8 @@ func CartCheckoutDetails(c *gin.Context) {
 	}
 
 	if couponcode == "" {
-		database.DB.First(&checkoutinfo)
-		checkoutinfo.UsersID = int(UsersID)
-		checkoutinfo.OrderID = orderID
-		checkoutinfo.Discount = discountAmount
-		checkoutinfo.CouponDiscount = 0
-		checkoutinfo.CouponCode = "Not Applied"
-		checkoutinfo.TotalMrp = TotalMrp
-		checkoutinfo.Total = TotalAmpount
-		database.DB.Save(&checkoutinfo)
-
+		var checkInfo models.Checkoutinfo
+		database.DB.Raw("UPDATE checkoutinfos SET order_id = ?,discount = ?,coupon_discount = ?,coupon_code = ?,total_mrp = ?,total = ? WHERE users_id = ?", orderID, discountAmount, 0, "Not Applied", TotalMrp, TotalAmpount, UsersID).Scan(&checkInfo)
 		c.JSON(200, gin.H{
 			"messsage": "No COupon",
 		})
@@ -211,15 +212,13 @@ func CartCheckoutDetails(c *gin.Context) {
 		"Wallet amount":   balance,
 	})
 
-	database.DB.First(&checkoutinfo)
-	checkoutinfo.UsersID = int(UsersID)
-	checkoutinfo.OrderID = orderID
-	checkoutinfo.Discount = discountAmount
-	checkoutinfo.CouponDiscount = STotalAmpount
-	checkoutinfo.CouponCode = couponcode
-	checkoutinfo.TotalMrp = TotalMrp
-	checkoutinfo.Total = TotalAmpount
-	database.DB.Save(&checkoutinfo)
+	//database.DB.Save(&checkoutinfo)
+	var checkInfo models.Checkoutinfo
+	database.DB.Raw("UPDATE checkoutinfos SET order_id = ?,discount = ?,coupon_discount = ?,coupon_code = ?,total_mrp = ?,total = ? WHERE users_id = ?", orderID, discountAmount, STotalAmpount, couponcode, TotalMrp, TotalAmpount, UsersID).Scan(&checkInfo)
+	c.JSON(200, gin.H{
+		"messsage": "Coupon Applied",
+	})
+
 }
 
 func CartCheckout(c *gin.Context) {
@@ -229,19 +228,16 @@ func CartCheckout(c *gin.Context) {
 	addressID, _ := strconv.Atoi(address)
 	cod := "COD"
 	RazorPay := "RAZORPAY"
-	OrderStatus := "PENDING        "
+	OrderStatus := "PENDING"
 	var orderID string
-	// Making random order id
-	rand.Seed(time.Now().UnixNano())
-	value := rand.Intn(999999-100000) + 100000
-	id := strconv.Itoa(value)
-	orderID = "OID" + id
 
+	// Fetching checkout informations
 	var checkoutinfo models.Checkoutinfo
-	database.DB.First(&checkoutinfo)
+	database.DB.First(&checkoutinfo, "users_id = ?", userID)
 	c.JSON(200, gin.H{
 		"message": checkoutinfo,
 	})
+	orderID = checkoutinfo.OrderID
 	discount := checkoutinfo.Discount
 	couponDiscount := checkoutinfo.CouponDiscount
 	couponCode := checkoutinfo.CouponCode
@@ -270,7 +266,7 @@ func CartCheckout(c *gin.Context) {
 		placeOrder(userID, orderID)
 	}
 	if PaymentMethod == RazorPay {
-		orders := models.Orders{UsersID: userID, AddressID: uint(addressID), OrderID: orderID, Discount: discount, CouponDiscount: couponDiscount, CouponCode: couponCode, Payment_Method: cod, Total_Amount: total, Status: OrderStatus}
+		orders := models.Orders{UsersID: userID, AddressID: uint(addressID), OrderID: orderID, Discount: discount, CouponDiscount: couponDiscount, CouponCode: couponCode, Payment_Method: RazorPay, Total_Amount: total, Status: OrderStatus}
 		database.DB.Create(&orders)
 	}
 
@@ -373,16 +369,23 @@ func CancelOrder(c *gin.Context) {
 }
 
 func WalletBalance(c *gin.Context) {
-	OrderID := 12345
 	userID := c.GetUint("id")
 	var balance int
-
+	var userid uint
 	database.DB.Raw("SELECT balance FROM wallets WHERE users_id = ?", userID).Scan(&balance)
-	// c.JSON(200, gin.H{
-	// 	"Balance": balance,
-	// })
-	c.HTML(200, "app.html", gin.H{
-		"OrderId": OrderID,
+	c.JSON(200, gin.H{
+		"Balance": balance,
 	})
 
+	userid = Check(userID)
+	c.JSON(200, gin.H{
+		"uid": userid,
+	})
+
+}
+
+func Check(uid uint) uint {
+
+	str := uid
+	return str
 }

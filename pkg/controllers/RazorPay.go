@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -10,18 +9,13 @@ import (
 	razorpay "github.com/razorpay/razorpay-go"
 )
 
-//var tpl *template.Template
-type UserHandler interface {
-	Success() http.HandlerFunc
-}
-
 func RazorPay(c *gin.Context) {
-
+	UsersID := c.Param("id")
 	var data models.Checkoutinfo
-	database.DB.First(&data)
+	database.DB.First(&data, "users_id = ?", UsersID)
 	total := data.Total
 	var user models.Users
-	database.DB.First(&user, "id = ?", data.UsersID)
+	database.DB.First(&user, "id = ?", UsersID)
 
 	client := razorpay.NewClient("rzp_test_XNE5NbTY0RM4SH", "6Pv9wOHuWCNZrQMtSvY57tst")
 
@@ -92,17 +86,6 @@ func RPSuccess(c *gin.Context) {
 	//fmt.Printf("%d\n", val_uint)
 	placeOrder(uint(uid), orderId)
 }
-
-// func Exec(c *gin.Context) {
-
-// 	c.HTML(200, "success.html", nil)
-// }
-
-//.Execute(c.Writer, pageVariables)
-
-// type userHandler struct {
-// 	userService service.UserService
-// }
 
 func SuccesPage(c *gin.Context) {
 

@@ -49,6 +49,8 @@ func UserRoutes(UserRoutes *gin.Engine) {
 	UserRoutes.POST("/user/addtocart", middleware.UserAuth, controllers.AddToCart)
 	UserRoutes.POST("/user/addwishlist", middleware.UserAuth, controllers.AddToWishlist)
 	UserRoutes.POST("/user/order/cancel", middleware.UserAuth, controllers.CancelOrder)
+	UserRoutes.POST("/user/buynow", middleware.UserAuth, controllers.BuyNow)
+	UserRoutes.POST("/user/buynow/checkout", middleware.UserAuth, controllers.BuyNowCheckout)
 
 	// GET Routes
 	UserRoutes.GET("/user/login/otp/validate", controllers.ValidateOtp)
@@ -62,7 +64,7 @@ func UserRoutes(UserRoutes *gin.Engine) {
 	UserRoutes.GET("/user/cartcheckout", middleware.UserAuth, controllers.CartCheckout)
 	UserRoutes.GET("/user/oders", middleware.UserAuth, controllers.OrderedItems)
 	UserRoutes.GET("/user/wallet/balance", controllers.WalletBalance)
-	UserRoutes.GET("/user/payment/razorpay", controllers.RazorPay)
+	UserRoutes.GET("/user/payment/razorpay/:id", controllers.RazorPay)
 	UserRoutes.GET("/payment-success", controllers.RPSuccess)
 	UserRoutes.GET("/success", controllers.SuccesPage)
 
