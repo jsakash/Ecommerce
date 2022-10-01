@@ -45,4 +45,5 @@ func Wishlist(c *gin.Context) {
 			"ID":        i.ID,
 		})
 	}
+
 }

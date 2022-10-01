@@ -61,7 +61,6 @@ type CartInfo struct {
 	gorm.Model
 	UsersId      uint
 	ProductsID   uint
-	CartsID      uint
 	Price        int
 	Discount     int
 	SellingPrice int
@@ -83,19 +82,23 @@ type Orders struct {
 	CouponCode     string
 	Payment_Method string
 	Total_Amount   int
-	Status         string
+	PaymentStatus  string
+	OrderStatus    string
 }
 
 type Ordereditems struct {
 	gorm.Model
-	UsersID      uint
-	ProductsID   uint
-	Order_ID     string
-	Product_Name string
-	Price        int
-	SellingPrice int
-	Discount     int
-	Status       string
+	UsersID        uint
+	ProductsID     uint
+	Order_ID       string
+	Product_Name   string
+	Price          int
+	CouponDiscount int
+	Discount       int
+	PaymentStatus  string
+	OrderStatus    string
+	Payment_Method string
+	//AmountPaid     int
 }
 
 type Otp struct {
@@ -104,11 +107,24 @@ type Otp struct {
 	Otp    string
 }
 
-type Check struct {
+type RazorPay struct {
 	gorm.Model
 	UserId          string
 	RazorPaymentId  string
 	RazorPayOrderID string
 	Signature       string
 	OrderId         string
+	AmountPaid      string
+}
+
+type Addimage struct {
+	gorm.Model
+	Cover string
+}
+
+type Wallethistory struct {
+	gorm.Model
+	UsersID uint
+	Credit  int
+	Debit   int
 }

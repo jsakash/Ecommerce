@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -55,7 +56,7 @@ func AddToCart(c *gin.Context) {
 		var discount models.Discount
 		database.DB.Where("product_id = ?", body.ProductsID).Find(&discount)
 		deductdiscount := discount.DiscountPercentage
-		cartInfo := models.CartInfo{UsersId: UsersID, ProductsID: body.ProductsID, CartsID: cart.ID, Discount: deductdiscount}
+		cartInfo := models.CartInfo{UsersId: UsersID, ProductsID: body.ProductsID, Discount: deductdiscount}
 		database.DB.Create(&cartInfo)
 
 		// c.JSON(200, gin.H{
@@ -133,7 +134,7 @@ func CartCheckoutDetails(c *gin.Context) {
 
 	// Making random order id
 	rand.Seed(time.Now().UnixNano())
-	value := rand.Intn(999999-100000) + 100000
+	value := rand.Intn(9999999999-1000000000) + 1000000000
 	id := strconv.Itoa(value)
 	orderID := "OID" + id
 
@@ -168,28 +169,6 @@ func CartCheckoutDetails(c *gin.Context) {
 		TotalMrp = TotalMrp + i.Product_Price
 	}
 	TotalAmpount = TotalMrp - discountAmount
-	if couponcode == "" {
-		c.JSON(200, gin.H{
-			"Total MRP": TotalMrp,
-			"Discount":  discountAmount,
-			//"Coupon Discount": STotalAmpount,
-			"Total":         TotalAmpount,
-			"Wallet Amount": balance,
-		})
-		//return
-	}
-	if ApplyWallet == "apply" {
-
-		if balance > TotalAmpount {
-			TotalAmpount = 0
-			newBalance := balance - TotalAmpount
-			database.DB.Model(&models.Wallet{}).Where("users_id = ?", UsersID).Update("balance", newBalance)
-		} else if balance < TotalAmpount {
-			TotalAmpount = TotalAmpount - balance
-			newBalance := 0
-			database.DB.Model(&models.Wallet{}).Where("users_id = ?", UsersID).Update("balance", newBalance)
-		}
-	}
 
 	if couponcode == "" {
 		var checkInfo models.Checkoutinfo
@@ -202,6 +181,7 @@ func CartCheckoutDetails(c *gin.Context) {
 
 	var coupon models.Coupon
 	database.DB.Raw("SELECT coupon_percentage FROM coupons WHERE coupon_code = ?", couponcode).Find(&coupon)
+
 	STotalAmpount := TotalMrp * coupon.CouponPercentage / 100
 	TotalAmpount = TotalAmpount - STotalAmpount
 	c.JSON(200, gin.H{
@@ -212,11 +192,28 @@ func CartCheckoutDetails(c *gin.Context) {
 		"Wallet amount":   balance,
 	})
 
-	//database.DB.Save(&checkoutinfo)
+	if ApplyWallet == "apply" {
+
+		if balance > TotalAmpount {
+			newBalance := balance - TotalAmpount
+			database.DB.Model(&models.Wallet{}).Where("users_id = ?", UsersID).Update("balance", newBalance)
+			WalletHistory := models.Wallethistory{UsersID: UsersID, Debit: TotalAmpount, Credit: 0}
+			database.DB.Create(&WalletHistory)
+			TotalAmpount = 0
+		} else if balance < TotalAmpount {
+			TotalAmpount = TotalAmpount - balance
+			newBalance := 0
+			database.DB.Model(&models.Wallet{}).Where("users_id = ?", UsersID).Update("balance", newBalance)
+			WalletHistory := models.Wallethistory{UsersID: UsersID, Debit: balance, Credit: 0}
+			database.DB.Create(&WalletHistory)
+		}
+	}
+
 	var checkInfo models.Checkoutinfo
 	database.DB.Raw("UPDATE checkoutinfos SET order_id = ?,discount = ?,coupon_discount = ?,coupon_code = ?,total_mrp = ?,total = ? WHERE users_id = ?", orderID, discountAmount, STotalAmpount, couponcode, TotalMrp, TotalAmpount, UsersID).Scan(&checkInfo)
 	c.JSON(200, gin.H{
-		"messsage": "Coupon Applied",
+		"messsage":    "Coupon Applied",
+		"TotalAmount": TotalAmpount,
 	})
 
 }
@@ -228,6 +225,7 @@ func CartCheckout(c *gin.Context) {
 	addressID, _ := strconv.Atoi(address)
 	cod := "COD"
 	RazorPay := "RAZORPAY"
+	PayStatus := "PENDING"
 	OrderStatus := "PENDING"
 	var orderID string
 
@@ -248,34 +246,8 @@ func CartCheckout(c *gin.Context) {
 		"discount":   discount,
 		"coupondisc": couponDiscount,
 		"coupcod":    couponCode,
-		"tot":        total,
+		"total":      total,
 	})
-
-	if PaymentMethod == cod {
-		orders := models.Orders{UsersID: userID, AddressID: uint(addressID), OrderID: orderID, Discount: discount, CouponDiscount: couponDiscount, CouponCode: couponCode, Payment_Method: cod, Total_Amount: total, Status: OrderStatus}
-		result := database.DB.Create(&orders)
-		if result.Error != nil {
-			c.JSON(400, gin.H{
-				"message": "error",
-			})
-			return
-		}
-		c.JSON(http.StatusAccepted, gin.H{
-			"message": "Success",
-		})
-		placeOrder(userID, orderID)
-	}
-	if PaymentMethod == RazorPay {
-		orders := models.Orders{UsersID: userID, AddressID: uint(addressID), OrderID: orderID, Discount: discount, CouponDiscount: couponDiscount, CouponCode: couponCode, Payment_Method: RazorPay, Total_Amount: total, Status: OrderStatus}
-		database.DB.Create(&orders)
-	}
-
-}
-
-func placeOrder(uid uint, oid string) {
-	usersID := uid
-	orderId := oid
-	status := "CONFIRMED"
 
 	var cartinfo []struct {
 		ProductsID    uint
@@ -287,27 +259,67 @@ func placeOrder(uid uint, oid string) {
 	}
 	var stock int
 	var product models.Products
-	database.DB.Find(&cartinfo)
-	database.DB.Raw("SELECT products_id,product_name,brand_name,product_price,discount FROM cart_infos INNER JOIN products on cart_infos.products_id = products.id WHERE users_id=?", usersID).Scan(&cartinfo)
-	// c.JSON(200, gin.H{
-	// 	"Products": cartinfo,
-	// })
-	//var discountAmount int
+	//var count int
+	// var couponOffer int
+	// database.DB.Raw("SELECT COUNT(*) From cart_infos WHERE users_id = ?", userID).Scan(&count)
+	// database.DB.Find(&cartinfo)
+	// couponOffer = couponDiscount / count
+	// // c.JSON(200, gin.H{
+	// // 	"messss": couponOffer,
+	// // 	"cont":   count,
+	// // })
+
+	database.DB.Raw("SELECT products_id,product_name,brand_name,product_price,discount FROM cart_infos INNER JOIN products on cart_infos.products_id = products.id WHERE users_id=?", userID).Scan(&cartinfo)
+
 	for _, i := range cartinfo {
 		Pid := i.ProductsID
 		Pname := i.Product_Name
-		price := i.Product_Price
 		Sprice := i.Product_Price - (i.Product_Price * i.Discount / 100)
-
+		fmt.Println(Sprice)
+		Cprice := total
 		Disc := i.Product_Price * i.Discount / 100
-		ordereditems := models.Ordereditems{UsersID: usersID, ProductsID: Pid, Order_ID: orderId, Product_Name: Pname, Price: price, SellingPrice: Sprice, Discount: Disc, Status: status}
+		ordereditems := models.Ordereditems{UsersID: userID, ProductsID: Pid, Order_ID: orderID, Product_Name: Pname, Price: Cprice, CouponDiscount: couponDiscount, Discount: Disc, OrderStatus: "CONFIMRED", PaymentStatus: OrderStatus, Payment_Method: PaymentMethod}
 		database.DB.Create(&ordereditems)
 		database.DB.Raw("SELECT stock FROM products WHERE id = ?", Pid).Scan(&stock)
 		database.DB.Raw("UPDATE products SET stock = ? WHERE id = ?", stock-1, Pid).Scan(&product)
-
 	}
+
+	if PaymentMethod == cod {
+		//OrderStatus = "CONFIRMED"
+		orders := models.Orders{UsersID: userID, AddressID: uint(addressID), OrderID: orderID, Discount: discount, CouponDiscount: couponDiscount, CouponCode: couponCode, Payment_Method: cod, Total_Amount: total, OrderStatus: OrderStatus, PaymentStatus: PayStatus}
+		result := database.DB.Create(&orders)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"message": "error",
+			})
+			return
+		}
+		var cart models.Cart
+		database.DB.Raw("DELETE FROM carts WHERE users_id = ?", userID).Scan(&cart)
+		var cartinfodel models.CartInfo
+		database.DB.Raw("DELETE FROM cart_infos WHERE users_id = ?", userID).Scan(&cartinfodel)
+		var checkinfo models.Checkoutinfo
+		database.DB.Raw("DELETE FROM checkoutinfos WHERE users_id = ?", userID).Scan(&checkinfo)
+		c.JSON(http.StatusAccepted, gin.H{
+			"message": "Order Placed",
+		})
+		//placeOrder(userID, orderID)
+	}
+	if PaymentMethod == RazorPay {
+		orders := models.Orders{UsersID: userID, AddressID: uint(addressID), OrderID: orderID, Discount: discount, CouponDiscount: couponDiscount, CouponCode: couponCode, Payment_Method: RazorPay, Total_Amount: total, OrderStatus: OrderStatus, PaymentStatus: PayStatus}
+		database.DB.Create(&orders)
+	}
+
+}
+
+func placeOrder(uid uint, oid string) {
+	usersID := uid
+	orderId := oid
+	status := "CONFIRMED"
 	var order models.Orders
-	database.DB.Raw("UPDATE orders SET status = ? WHERE order_id = ?", status, orderId).Scan(&order)
+	database.DB.Raw("UPDATE orders SET order_status = ? ,payment_status = ? WHERE order_id = ?", status, status, orderId).Scan(&order)
+	var orderitem models.Ordereditems
+	database.DB.Raw("UPDATE ordereditems SET order_status = ?,payment_status = ? WHERE order_id = ?", status, status, orderId).Scan(&orderitem)
 	var cart models.Cart
 	database.DB.Raw("DELETE FROM carts WHERE users_id = ?", usersID).Scan(&cart)
 	var cartinfodel models.CartInfo
@@ -327,14 +339,14 @@ func OrderedItems(c *gin.Context) {
 
 	for _, i := range items {
 		c.JSON(200, gin.H{
-			"id":            i.ID,
-			"Product Price": i.Price,
-			"ProductsID":    i.ProductsID,
-			"Order_ID":      i.Order_ID,
-			"Product_Name":  i.Product_Name,
-			"SellingPrice":  i.SellingPrice,
-			"Discount":      i.Discount,
-			"Order Status":  i.Status,
+			"id":              i.ID,
+			"Amount_Paid":     i.Price,
+			"ProductsID":      i.ProductsID,
+			"Order_ID":        i.Order_ID,
+			"Product_Name":    i.Product_Name,
+			"Discount":        i.Discount,
+			"Coupon_Discount": i.CouponDiscount,
+			"Order Status":    i.OrderStatus,
 		})
 	}
 }
@@ -342,50 +354,58 @@ func OrderedItems(c *gin.Context) {
 func CancelOrder(c *gin.Context) {
 	userID := c.GetUint("id")
 	var items models.Ordereditems
-	var updateStatus string = "Cancelled"
+	var updateStatus string = "CANCELLED"
 	id := c.Query("ProductID")
 
 	database.DB.First(&items, id)
-	database.DB.Model(&items).Where("id=?", id).Update("status", updateStatus)
-
-	c.JSON(200, gin.H{
-		"message": "Order Cancelled",
-	})
+	if items.OrderStatus == updateStatus {
+		c.JSON(400, gin.H{
+			"message": "Order already Cancelled",
+		})
+		return
+	}
+	database.DB.Model(&items).Where("id=?", id).Update("order_status", updateStatus)
 
 	var price int
-	database.DB.Raw("SELECT selling_price FROM ordereditems WHERE id = ?", id).Scan(&price)
+	database.DB.Raw("SELECT price FROM ordereditems WHERE id = ?", id).Scan(&price)
 
 	var balance int
 	database.DB.Raw("SELECT balance FROM wallets WHERE users_id = ?", userID).Scan(&balance)
-
 	newBalance := balance + price
+
+	if items.Payment_Method == "COD" {
+		c.JSON(200, gin.H{
+			"message": "Order Cancelled",
+		})
+		return
+	}
+
+	WalletHistory := models.Wallethistory{UsersID: userID, Debit: 0, Credit: price}
+	database.DB.Create(&WalletHistory)
+
+	var totalAmount int
+	database.DB.Raw("SELECT total_amaount FROM orders WHERE users_id = ?", userID).Scan(&totalAmount)
+	Ntotal := totalAmount - balance
 	//var wallet models.Wallet
 	database.DB.Model(&models.Wallet{}).Where("users_id = ?", userID).Update("balance", newBalance)
+	database.DB.Model(&models.Orders{}).Where("users_id = ?", userID).Update("total_amount", Ntotal)
 	//database.DB.Raw("UPDATE wallets SET balance =? WHERE users_id = ?", newBalance, userID)
-
 	c.JSON(200, gin.H{
-		"klm": newBalance,
+		"message": "Order Cancelled",
 	})
 }
 
 func WalletBalance(c *gin.Context) {
+
 	userID := c.GetUint("id")
 	var balance int
-	var userid uint
 	database.DB.Raw("SELECT balance FROM wallets WHERE users_id = ?", userID).Scan(&balance)
 	c.JSON(200, gin.H{
 		"Balance": balance,
 	})
 
-	userid = Check(userID)
 	c.JSON(200, gin.H{
-		"uid": userid,
+		"UserID": userID,
 	})
 
-}
-
-func Check(uid uint) uint {
-
-	str := uid
-	return str
 }

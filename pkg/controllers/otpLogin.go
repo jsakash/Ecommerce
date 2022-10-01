@@ -133,6 +133,7 @@ func ValidateOtp(c *gin.Context) {
 	c.SetCookie("UserAuthorization", tokenString, 3600*24*30, "", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
+		"id":     user.ID,
 		"name":   user.First_Name,
 		"status": user.Status,
 		"mobile": user.Phone_Number,

@@ -12,6 +12,9 @@ type Products struct {
 	ColorsID      uint
 	SizeID        uint
 	Stock         int
+	Cover         string
+	SubPic1       string
+	SubPic2       string
 	Cart          Cart
 	CartInfo      CartInfo
 	Wishlist      Wishlist

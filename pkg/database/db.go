@@ -41,7 +41,9 @@ func ConnectToDb() {
 		&models.Cart{},
 		&models.Wallet{},
 		&models.Checkoutinfo{},
-		&models.Check{},
+		&models.RazorPay{},
+		&models.Addimage{},
+		&models.Wallethistory{},
 	)
 }
 

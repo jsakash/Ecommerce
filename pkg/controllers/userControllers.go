@@ -173,6 +173,7 @@ func Login(c *gin.Context) {
 	c.SetCookie("UserAuthorization", tokenString, 3600*24*30, "", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
+		"id":     user.ID,
 		"name":   user.First_Name,
 		"status": user.Status,
 		"mobile": user.Phone_Number,
@@ -301,6 +302,60 @@ func SelectAddress(c *gin.Context) {
 
 }
 
-func EditProfile(c *gin.Context) {
+func EditAddress(c *gin.Context) {
+
+	// Get id off the url
+	id := c.Query("id")
+
+	// Get data off req body
+
+	var body struct {
+		Name         string
+		Phone_number int
+		Pincode      int
+		House_Adress string
+		Area         string
+		Landmark     string
+		City         string
+	}
+
+	c.Bind(&body)
+
+	// Find the post we are updating
+	var Address []models.Address
+	database.DB.First(&Address, id)
+
+	// Update it
+	database.DB.Model(&Address).Updates(models.Address{
+		Name:         body.Name,
+		Phone_number: body.Phone_number,
+		Pincode:      body.Phone_number,
+		House_Adress: body.House_Adress,
+		Area:         body.Area,
+		Landmark:     body.Landmark,
+		City:         body.City,
+	})
+	// Response
+	c.JSON(200, gin.H{
+		"message": "Address updated",
+	})
+
+}
+
+func WalletInfo(c *gin.Context) {
+
+	UsersID := c.GetUint("id")
+
+	var history []models.Wallethistory
+	database.DB.Where("wallethistories.users_id = ?", UsersID).Find(&history)
+
+	for _, i := range history {
+		c.JSON(200, gin.H{
+			"Date":   i.CreatedAt,
+			"Debit":  i.Debit,
+			"Credit": i.Credit,
+			"UserID": i.UsersID,
+		})
+	}
 
 }

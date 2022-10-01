@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jsakash/ecommers/pkg/database"
 	"github.com/jsakash/ecommers/pkg/models"
@@ -8,8 +10,13 @@ import (
 
 func ListAllUsers(c *gin.Context) {
 
+	limit := 3
+	pageStr := c.Query("page")
+	page, _ := strconv.Atoi(pageStr)
+	offset := (page - 1) * limit
+
 	var users []models.Users
-	database.DB.Find(&users)
+	database.DB.Limit(limit).Offset(offset).Find(&users)
 	for _, i := range users {
 		c.JSON(200, gin.H{
 			"Name":  i.First_Name,

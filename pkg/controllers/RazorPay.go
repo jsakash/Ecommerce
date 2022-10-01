@@ -67,14 +67,17 @@ func RPSuccess(c *gin.Context) {
 	razorPayOrderID := c.Query("order_id")
 	signature := c.Query("signature")
 	orderId := c.Query("id")
+	total := c.Query("total")
 
-	check := models.Check{
+	check := models.RazorPay{
 		UserId:          id,
 		RazorPaymentId:  razorPaymentId,
 		RazorPayOrderID: razorPayOrderID,
 		Signature:       signature,
 		OrderId:         orderId,
+		AmountPaid:      total,
 	}
+
 	database.DB.Create(&check)
 	c.JSON(200, gin.H{
 		"status": true,
@@ -83,11 +86,26 @@ func RPSuccess(c *gin.Context) {
 	var checkinfo models.Checkoutinfo
 	database.DB.Raw("DELETE FROM checkoutinfos WHERE users_id = ?", id).Scan(&checkinfo)
 	uid, _ := strconv.ParseUint(id, 10, 64)
-	//fmt.Printf("%d\n", val_uint)
 	placeOrder(uint(uid), orderId)
 }
 
 func SuccesPage(c *gin.Context) {
 
 	c.HTML(200, "success.html", nil)
+}
+
+func RazorPayInfo(c *gin.Context) {
+	var RazPay []models.RazorPay
+	database.DB.Find(&RazPay)
+
+	for _, i := range RazPay {
+		c.JSON(200, gin.H{
+			"UserId":         i.UserId,
+			"RazorPaymentId": i.RazorPaymentId,
+			"RazPayOID":      i.RazorPayOrderID,
+			"OrderID":        i.OrderId,
+			"AmountPaid":     i.AmountPaid,
+		})
+	}
+
 }
