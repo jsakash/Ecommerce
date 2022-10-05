@@ -36,7 +36,8 @@ func AdminLogin(c *gin.Context) {
 
 	if c.Bind(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read body",
+			"status":  false,
+			"message": "Failed to read body",
 		})
 		return
 	}
@@ -46,7 +47,8 @@ func AdminLogin(c *gin.Context) {
 
 	if admin.ID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid Email or Password",
+			"status":  false,
+			"message": "Invalid Email or Password",
 		})
 		return
 	}
@@ -55,7 +57,8 @@ func AdminLogin(c *gin.Context) {
 	database.DB.Find(&adminPassword)
 	if adminPassword.Password != body.Password {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Incorrect Password",
+			"status":  false,
+			"message": "Incorrect Password",
 		})
 	}
 	// Generate a jwt token
@@ -68,7 +71,8 @@ func AdminLogin(c *gin.Context) {
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to create token",
+			"status":  false,
+			"message": "Failed to create token",
 		})
 		return
 	}
@@ -77,7 +81,8 @@ func AdminLogin(c *gin.Context) {
 	c.SetCookie("AdminAuthorization", tokenString, 3600*24*30, "", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
-
-		"token": tokenString,
+		"status":  true,
+		"message": "ok",
+		"data":    tokenString,
 	})
 }

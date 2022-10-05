@@ -36,6 +36,7 @@ func BlockUser(c *gin.Context) {
 	database.DB.Model(&user).Where("id=?", id).Update("status", updateStatus)
 
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "User Blocked",
 	})
 }
@@ -50,6 +51,7 @@ func UnBlockUser(c *gin.Context) {
 	database.DB.Model(&user).Where("id=?", id).Update("status", updateStatus)
 
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "User UnBlocked",
 	})
 
@@ -61,6 +63,7 @@ func DeleteUser(c *gin.Context) {
 	database.DB.Delete(&models.Users{}, id)
 
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "Deleted succesfully",
 	})
 

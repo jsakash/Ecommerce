@@ -27,6 +27,7 @@ func AddToWishlist(c *gin.Context) {
 	}
 	// Return it
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "Added To Wishlist",
 	})
 }

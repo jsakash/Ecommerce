@@ -29,6 +29,7 @@ func OtpLog(c *gin.Context) {
 
 	if !result {
 		c.JSON(400, gin.H{
+			"status":  false,
 			"message": "Mobile number doesnt exist! Please SignUp",
 		})
 		return
@@ -60,11 +61,13 @@ func OtpLog(c *gin.Context) {
 	_, err := client.Api.CreateMessage(&params)
 	if err != nil {
 		c.JSON(400, gin.H{
+			"status":  false,
 			"message": "error sending OTP",
 		})
 		return
 	}
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "OTP Sent Succesfully",
 	})
 
@@ -83,23 +86,13 @@ func ChekNumber(str string) bool {
 func ValidateOtp(c *gin.Context) {
 
 	sotp := c.Query("otp")
-
 	var userNum string
 	db := database.GetDb()
 	db.Raw("SELECT mobile FROM otps WHERE otp=?", sotp).Scan(&userNum)
 
-	// c.JSON(200, gin.H{
-	// 	"msg": userNum,
-	// })
-
 	var user models.Users
 	//database.DB.Where("users.phone_number = ?", userNum).Find(&user)
 	database.DB.First(&user, "phone_number = ?", userNum)
-
-	// c.JSON(200, gin.H{
-	// 	"msg": user.First_Name,
-	// 	"id":  user.ID,
-	// })
 
 	// Look up request user
 	var otp models.Otp
@@ -107,7 +100,8 @@ func ValidateOtp(c *gin.Context) {
 
 	if user.ID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid OTP",
+			"status":  false,
+			"message": "Invalid OTP",
 		})
 
 		return
@@ -133,11 +127,9 @@ func ValidateOtp(c *gin.Context) {
 	c.SetCookie("UserAuthorization", tokenString, 3600*24*30, "", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
-		"id":     user.ID,
-		"name":   user.First_Name,
-		"status": user.Status,
-		"mobile": user.Phone_Number,
-		"token":  tokenString,
+		"status":  true,
+		"message": "ok",
+		"data":    tokenString,
 	})
 
 	db.Raw("DELETE FROM otps WHERE mobile=?", userNum).Scan(&otp)

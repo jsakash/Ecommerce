@@ -40,6 +40,7 @@ func AddCoupon(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "Coupon Crearted",
 	})
 
@@ -51,6 +52,7 @@ func DeleteCoupon(c *gin.Context) {
 	database.DB.Where("coupon_name = ?", couponName).Delete(&coupon)
 	//database.DB.Raw("DELETE FROM coupons WHERE coupon_name=?", couponName).Scan(&coupon)
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "Deleted succesfully",
 	})
 
@@ -61,11 +63,13 @@ func ListCoupons(c *gin.Context) {
 	result := database.DB.Find(&coupons)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
+			"ststus":  false,
 			"message": "No coupon found",
 		})
 		return
 	}
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": coupons,
 	})
 

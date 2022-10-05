@@ -25,7 +25,8 @@ func AddDiscount(c *gin.Context) {
 	for _, i := range checkDisc {
 		if i.DiscountName == discountName {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Discount Name Already Exist",
+				"status":  false,
+				"message": "Discount Name Already Exist",
 			})
 			return
 		}
@@ -40,6 +41,7 @@ func AddDiscount(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "Discount Created",
 	})
 
@@ -51,6 +53,7 @@ func DeleteDiscount(c *gin.Context) {
 	database.DB.Where("coupon_name = ?", discountName).Delete(&discount)
 	//database.DB.Raw("DELETE FROM coupons WHERE coupon_name=?", couponName).Scan(&coupon)
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "Deleted succesfully",
 	})
 }
@@ -60,12 +63,14 @@ func ListDiscount(c *gin.Context) {
 	result := database.DB.Find(&discount)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
+			"status":  false,
 			"message": "No discount found",
 		})
 		return
 	}
 	c.JSON(200, gin.H{
-		"message": discount,
+		"status": true,
+		"data":   discount,
 	})
 
 }

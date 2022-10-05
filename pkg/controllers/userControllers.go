@@ -40,15 +40,7 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	// Hash the password
-	// hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
-
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"error": "Failed to hash password",
-	// 	})
-	// }
-
+	// Hash the given password
 	hashPass := HashPassword(body.Password)
 
 	// Create the user
@@ -60,7 +52,8 @@ func Signup(c *gin.Context) {
 	for _, i := range checkMail {
 		if i.Email == user.Email {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Username Already Exist",
+				"status":  false,
+				"message": "Username Already Exist",
 			})
 			return
 		}
@@ -130,7 +123,8 @@ func Login(c *gin.Context) {
 
 	if user.ID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid email or password",
+			"status":  false,
+			"message": "Invalid email or password",
 		})
 
 		return
@@ -141,14 +135,16 @@ func Login(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid password",
+			"status":  false,
+			"message": "Invalid password",
 		})
 		return
 	}
 
 	if !user.Status {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "You are blocked ",
+			"status":  false,
+			"message": "You are blocked",
 		})
 		return
 	}
@@ -173,28 +169,31 @@ func Login(c *gin.Context) {
 	c.SetCookie("UserAuthorization", tokenString, 3600*24*30, "", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
-		"id":     user.ID,
-		"name":   user.First_Name,
-		"status": user.Status,
-		"mobile": user.Phone_Number,
-		"token":  tokenString,
+
+		"status":  true,
+		"message": "OK",
+		"data":    tokenString,
 	})
 
 }
 
 func ChangePasswors(c *gin.Context) {
 
-	email := c.GetString("email")
-	password := c.Query("password")
-	newPassword := c.Query("newPassword")
+	var body struct {
+		Password    string
+		newPassword string
+	}
+	userID := c.GetUint("id")
+	password := body.Password
+	newPassword := body.newPassword
 
 	// Look up request user
 	var user models.Users
-	database.DB.First(&user, "email = ?", email)
-
+	database.DB.First(&user, "id = ?", userID)
 	if user.ID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid user password",
+			"status":  false,
+			"message": "Invalid user password",
 		})
 
 		return
@@ -202,24 +201,25 @@ func ChangePasswors(c *gin.Context) {
 
 	// Compare sent in pass with saved user pass hash
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid password",
+			"status":  false,
+			"message": "Invalid password",
 		})
 		return
 	}
 
 	newHashPass := HashPassword(newPassword)
-	//database.DB.First(&user, email)
-	database.DB.Model(&user).Where("email=?", email).Update("password", newHashPass)
-
+	database.DB.Model(&user).Where("id=?", userID).Update("password", newHashPass)
+	// Return Response
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "Password changed successfully",
 	})
 
 }
 
+// to test middleware
 func Validate(c *gin.Context) {
 	//user := c.GetInt("id")
 	check, _ := c.Get("user")
@@ -235,9 +235,8 @@ func Validate(c *gin.Context) {
 
 func AddAddress(c *gin.Context) {
 
-	id := c.GetUint("id")
+	id := c.GetUint("id") // Get ID from token
 	var body struct {
-		//UsersID      uint
 		Name         string
 		Phone_number int
 		Pincode      int
@@ -250,7 +249,6 @@ func AddAddress(c *gin.Context) {
 	c.Bind(&body)
 
 	// Create
-
 	address := models.Address{
 		UsersID:      id,
 		Name:         body.Name,
@@ -266,12 +264,14 @@ func AddAddress(c *gin.Context) {
 
 	if result.Error != nil {
 		c.JSON(400, gin.H{
+			"staus":   false,
 			"message": "Error",
 		})
 	}
 	// Return it
 
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "Address added sucessfully",
 	})
 
@@ -308,7 +308,6 @@ func EditAddress(c *gin.Context) {
 	id := c.Query("id")
 
 	// Get data off req body
-
 	var body struct {
 		Name         string
 		Phone_number int
@@ -337,6 +336,7 @@ func EditAddress(c *gin.Context) {
 	})
 	// Response
 	c.JSON(200, gin.H{
+		"ststus":  true,
 		"message": "Address updated",
 	})
 
@@ -345,12 +345,12 @@ func EditAddress(c *gin.Context) {
 func WalletInfo(c *gin.Context) {
 
 	UsersID := c.GetUint("id")
-
 	var history []models.Wallethistory
 	database.DB.Where("wallethistories.users_id = ?", UsersID).Find(&history)
 
 	for _, i := range history {
 		c.JSON(200, gin.H{
+			"status": true,
 			"Date":   i.CreatedAt,
 			"Debit":  i.Debit,
 			"Credit": i.Credit,

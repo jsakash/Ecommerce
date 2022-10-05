@@ -14,24 +14,6 @@ func AddProduct(c *gin.Context) {
 
 	// Get data off req body
 
-	// var body struct {
-	// 	Product_Name  string
-	// 	Brand_Name    string
-	// 	Product_Price int
-	// 	Description   string
-	// 	CategoryID    uint
-	// 	ColorsID      uint
-	// 	SizeID        uint
-	// 	Stock         int
-	// 	Cover         string
-	// 	SubPic1       string
-	// 	SubPic2       string
-	// 	SubPic3       string
-	// }
-
-	// c.Bind(&body)
-
-	// Create
 	ProdName := c.PostForm("ProductName")
 	BrandName := c.PostForm("BrandName")
 	Pprice := c.PostForm("ProductPrice")
@@ -75,18 +57,6 @@ func AddProduct(c *gin.Context) {
 		SubPic2:       SubPic2,
 	}
 
-	//var duplicate []models.Products
-	//database.DB.Find(&duplicate)
-
-	// for _, i := range duplicate {
-	// 	if i. == body {
-	// 		c.JSON(400, gin.H{
-	// 			"message": "Product already exists",
-	// 		})
-	// 		return
-	// 	}
-	// }
-
 	result := database.DB.Create(&products)
 
 	if result.Error != nil {
@@ -97,6 +67,7 @@ func AddProduct(c *gin.Context) {
 	// Return it
 
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "Product added",
 	})
 

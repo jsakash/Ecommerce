@@ -18,8 +18,6 @@ func AdminRoutes(AdminRoutes *gin.Engine) {
 	AdminRoutes.POST("/admin/add/coupon", middleware.AdminAuth, controllers.AddCoupon)
 	AdminRoutes.POST("/admin/add/discount", middleware.AdminAuth, controllers.AddDiscount)
 
-	AdminRoutes.POST("/img", controllers.AddImage)
-
 	// GET Routes
 	AdminRoutes.GET("/admin/list/user/:page", middleware.AdminAuth, controllers.ListAllUsers)
 	AdminRoutes.GET("/admin/list/product", middleware.AdminAuth, controllers.ListAllProducts)

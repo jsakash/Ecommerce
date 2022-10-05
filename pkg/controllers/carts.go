@@ -15,8 +15,6 @@ import (
 func AddToCart(c *gin.Context) {
 
 	UsersID := c.GetUint("id")
-	// var Subtotal int
-	//var GrandTotal int
 	var body struct {
 		ProductsID uint
 		Quantity   int
@@ -27,6 +25,7 @@ func AddToCart(c *gin.Context) {
 	database.DB.Raw("SELECT stock FROM products WHERE id = ?", body.ProductsID).Scan(&stock)
 	if stock == 0 {
 		c.JSON(400, gin.H{
+			"status":  false,
 			"message": "Product is Out Of Stock",
 		})
 		return
@@ -49,6 +48,7 @@ func AddToCart(c *gin.Context) {
 	}
 	// Return it
 	c.JSON(200, gin.H{
+		"status":  true,
 		"message": "Added To Cart",
 	})
 
@@ -58,17 +58,6 @@ func AddToCart(c *gin.Context) {
 		deductdiscount := discount.DiscountPercentage
 		cartInfo := models.CartInfo{UsersId: UsersID, ProductsID: body.ProductsID, Discount: deductdiscount}
 		database.DB.Create(&cartInfo)
-
-		// c.JSON(200, gin.H{
-		// 	"new id":        i.Products_id,
-		// 	"new":           i.Product_Price,
-		// 	"newdisc":       i.Product_Price * deductdiscount / 100,
-		// 	"selling Price": i.Product_Price - (i.Product_Price * deductdiscount / 100),
-		// })
-		// 	}
-		// }
-		//OrderInfo(DiscountedAmount, deductAm, GrandTotal)
-
 	}
 
 }
@@ -97,6 +86,7 @@ func CartList(c *gin.Context) {
 		Subtotal = Subtotal + sum
 	}
 	c.JSON(200, gin.H{
+		"status":   true,
 		"Subtotal": Subtotal,
 	})
 
@@ -259,15 +249,6 @@ func CartCheckout(c *gin.Context) {
 	}
 	var stock int
 	var product models.Products
-	//var count int
-	// var couponOffer int
-	// database.DB.Raw("SELECT COUNT(*) From cart_infos WHERE users_id = ?", userID).Scan(&count)
-	// database.DB.Find(&cartinfo)
-	// couponOffer = couponDiscount / count
-	// // c.JSON(200, gin.H{
-	// // 	"messss": couponOffer,
-	// // 	"cont":   count,
-	// // })
 
 	database.DB.Raw("SELECT products_id,product_name,brand_name,product_price,discount FROM cart_infos INNER JOIN products on cart_infos.products_id = products.id WHERE users_id=?", userID).Scan(&cartinfo)
 
@@ -301,6 +282,7 @@ func CartCheckout(c *gin.Context) {
 		var checkinfo models.Checkoutinfo
 		database.DB.Raw("DELETE FROM checkoutinfos WHERE users_id = ?", userID).Scan(&checkinfo)
 		c.JSON(http.StatusAccepted, gin.H{
+			"status":  true,
 			"message": "Order Placed",
 		})
 		//placeOrder(userID, orderID)
@@ -328,84 +310,14 @@ func placeOrder(uid uint, oid string) {
 	database.DB.Raw("DELETE FROM checkoutinfos WHERE users_id = ?", usersID).Scan(&checkinfo)
 }
 
-func OrderedItems(c *gin.Context) {
-	UsersID := c.GetUint("id")
-	var items []models.Ordereditems
-	database.DB.Where("users_id = ?", UsersID).Find(&items)
-
-	// c.JSON(200, gin.H{
-	// 	"message": items,
-	// })
-
-	for _, i := range items {
-		c.JSON(200, gin.H{
-			"id":              i.ID,
-			"Amount_Paid":     i.Price,
-			"ProductsID":      i.ProductsID,
-			"Order_ID":        i.Order_ID,
-			"Product_Name":    i.Product_Name,
-			"Discount":        i.Discount,
-			"Coupon_Discount": i.CouponDiscount,
-			"Order Status":    i.OrderStatus,
-		})
-	}
-}
-
-func CancelOrder(c *gin.Context) {
-	userID := c.GetUint("id")
-	var items models.Ordereditems
-	var updateStatus string = "CANCELLED"
-	id := c.Query("ProductID")
-
-	database.DB.First(&items, id)
-	if items.OrderStatus == updateStatus {
-		c.JSON(400, gin.H{
-			"message": "Order already Cancelled",
-		})
-		return
-	}
-	database.DB.Model(&items).Where("id=?", id).Update("order_status", updateStatus)
-
-	var price int
-	database.DB.Raw("SELECT price FROM ordereditems WHERE id = ?", id).Scan(&price)
-
-	var balance int
-	database.DB.Raw("SELECT balance FROM wallets WHERE users_id = ?", userID).Scan(&balance)
-	newBalance := balance + price
-
-	if items.Payment_Method == "COD" {
-		c.JSON(200, gin.H{
-			"message": "Order Cancelled",
-		})
-		return
-	}
-
-	WalletHistory := models.Wallethistory{UsersID: userID, Debit: 0, Credit: price}
-	database.DB.Create(&WalletHistory)
-
-	var totalAmount int
-	database.DB.Raw("SELECT total_amaount FROM orders WHERE users_id = ?", userID).Scan(&totalAmount)
-	Ntotal := totalAmount - balance
-	//var wallet models.Wallet
-	database.DB.Model(&models.Wallet{}).Where("users_id = ?", userID).Update("balance", newBalance)
-	database.DB.Model(&models.Orders{}).Where("users_id = ?", userID).Update("total_amount", Ntotal)
-	//database.DB.Raw("UPDATE wallets SET balance =? WHERE users_id = ?", newBalance, userID)
-	c.JSON(200, gin.H{
-		"message": "Order Cancelled",
-	})
-}
-
 func WalletBalance(c *gin.Context) {
 
 	userID := c.GetUint("id")
 	var balance int
 	database.DB.Raw("SELECT balance FROM wallets WHERE users_id = ?", userID).Scan(&balance)
 	c.JSON(200, gin.H{
+		"status":  true,
 		"Balance": balance,
+		"UserID":  userID,
 	})
-
-	c.JSON(200, gin.H{
-		"UserID": userID,
-	})
-
 }
