@@ -1,17 +1,34 @@
 version: '4.10.0'
 
 services:
-  database:
-   
+  postgres:
+    container_name: ecommers
     image: postgres:14.4
-    volumes: 
-      - ./data/db:/var/lib/posgresql/data
-    ports:
-      - 5432:5432
     environment:
-      - POSTGRES_USER=akashjs
-      - POSTGRES_PASSWORD=312002
-      - POSTGRES_DB=ecommers
-   
-    
-
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - db:/var/lib/posgresql/data
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_SOURCE=postgresql://postgres:secret@postgres:5432/postgres?sslmode=disable        
+    depends_on:
+      - postgres
+    entrypoint:
+      [
+        "/ecommers/wait-for.sh",
+        "postgres:5432",
+        "--",
+        "/ecommers/start.sh"
+      ]
+    command: [ "/ecommers/main" ]
+volumes:
+  db:

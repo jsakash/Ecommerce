@@ -87,8 +87,8 @@ func ValidateOtp(c *gin.Context) {
 
 	sotp := c.Query("otp")
 	var userNum string
-	db := database.GetDb()
-	db.Raw("SELECT mobile FROM otps WHERE otp=?", sotp).Scan(&userNum)
+
+	database.DB.Raw("SELECT mobile FROM otps WHERE otp=?", sotp).Scan(&userNum)
 
 	var user models.Users
 	//database.DB.Where("users.phone_number = ?", userNum).Find(&user)
@@ -132,6 +132,6 @@ func ValidateOtp(c *gin.Context) {
 		"data":    tokenString,
 	})
 
-	db.Raw("DELETE FROM otps WHERE mobile=?", userNum).Scan(&otp)
+	database.DB.Raw("DELETE FROM otps WHERE mobile=?", userNum).Scan(&otp)
 
 }
