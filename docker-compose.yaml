@@ -5,7 +5,7 @@ services:
     container_name: ecommers
     image: postgres:14.4
     environment:
-      - POSTGRES_USER=postgres
+      - POSTGRES_USER=akashjs
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=postgres
     ports:
