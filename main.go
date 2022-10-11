@@ -10,6 +10,7 @@ import (
 func init() {
 	initializers.LoadEnvVariables()
 	database.ConnectToDb()
+	gin.SetMode(gin.ReleaseMode)
 
 }
 
