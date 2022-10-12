@@ -41,22 +41,16 @@ func AdminAuth(c *gin.Context) {
 		if float64(time.Now().Unix()) > claims["exp"].(float64) {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
-
 		// Find the user with token sub
 		var admin models.Admin
 		database.DB.First(&admin, claims["sub"])
-
 		if admin.ID == 0 {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
-
 		// Attach to request
 		c.Set("admin", admin)
-
 		// Continue
-
 		c.Next()
-
 		fmt.Println(claims["foo"], claims["nbf"])
 	} else {
 		c.AbortWithStatus(http.StatusUnauthorized)

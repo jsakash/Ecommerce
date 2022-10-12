@@ -22,7 +22,6 @@ func UserAuth(c *gin.Context) {
 	}
 
 	// Decode/Validate it
-
 	// Parse takes the token string and a function for looking up the key. The latter is especially
 
 	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -53,12 +52,8 @@ func UserAuth(c *gin.Context) {
 		// Attach to request
 		c.Set("user", user.Email)
 		c.Set("id", user.ID)
-		//c.Set("phone_number", user.Phone_Number)
-
 		// Continue
-
 		c.Next()
-
 		fmt.Println(claims["foo"], claims["nbf"])
 	} else {
 		c.AbortWithStatus(http.StatusUnauthorized)

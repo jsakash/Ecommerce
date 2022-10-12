@@ -27,7 +27,7 @@ func AddProduct(c *gin.Context) {
 	SizeID, _ := strconv.ParseUint(sizID, 10, 64)
 	stk := c.PostForm("Stock")
 	Stock, _ := strconv.Atoi(stk)
-
+	// Adding Images
 	CoverPicPath, _ := c.FormFile("cover")
 	extension := filepath.Ext(CoverPicPath.Filename)
 	CoverPic := uuid.New().String() + extension
@@ -63,6 +63,7 @@ func AddProduct(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"message": "Error",
 		})
+		return
 	}
 	// Return it
 

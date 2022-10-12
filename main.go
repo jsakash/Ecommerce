@@ -8,9 +8,9 @@ import (
 )
 
 func init() {
-	initializers.LoadEnvVariables()
-	database.ConnectToDb()
-	gin.SetMode(gin.ReleaseMode)
+	initializers.LoadEnvVariables() // Initializing .env file
+	database.ConnectToDb()          // Initializing connection with database
+	gin.SetMode(gin.ReleaseMode)    // Setting Gin to Release Mod
 
 }
 
@@ -18,9 +18,8 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger())
-	//router.In
 	routes.UserRoutes(router)
 	routes.AdminRoutes(router)
-	router.Run(":8080")
-	router.LoadHTMLGlob("./templates/*")
+	router.Run(":8080")                  // Port Declaration to serve the routes
+	router.LoadHTMLGlob("./templates/*") // To load the html files
 }

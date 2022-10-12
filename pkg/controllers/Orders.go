@@ -38,12 +38,12 @@ func OrderInfo(c *gin.Context) {
 }
 
 func OrderedItems(c *gin.Context) {
+	// Fetching user id from jwt
 	UsersID := c.GetUint("id")
 	var items []models.Ordereditems
 	database.DB.Where("users_id = ?", UsersID).Find(&items)
 
 	for _, i := range items {
-
 		c.JSON(200, gin.H{
 			"status":          true,
 			"id":              i.ID,
@@ -95,10 +95,9 @@ func CancelOrder(c *gin.Context) {
 	var totalAmount int
 	database.DB.Raw("SELECT total_amaount FROM orders WHERE users_id = ?", userID).Scan(&totalAmount)
 	Ntotal := totalAmount - balance
-	//var wallet models.Wallet
+	// Updating wallet on order cancellation
 	database.DB.Model(&models.Wallet{}).Where("users_id = ?", userID).Update("balance", newBalance)
 	database.DB.Model(&models.Orders{}).Where("users_id = ?", userID).Update("total_amount", Ntotal)
-	//database.DB.Raw("UPDATE wallets SET balance =? WHERE users_id = ?", newBalance, userID)
 	c.JSON(200, gin.H{
 		"status":  true,
 		"message": "Order Cancelled",

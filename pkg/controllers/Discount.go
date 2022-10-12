@@ -10,9 +10,9 @@ import (
 )
 
 func AddDiscount(c *gin.Context) {
-
-	discountName := c.Query("discountName")
-	DPercentage := c.Query("discountPercentage")
+	// Get Info off req body
+	discountName := c.PostForm("discountName")
+	DPercentage := c.PostForm("discountPercentage")
 	discountPercentage, _ := strconv.Atoi(DPercentage)
 	PId := c.Query("productId")
 	productId, _ := strconv.Atoi(PId)

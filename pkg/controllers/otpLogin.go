@@ -35,8 +35,7 @@ func OtpLog(c *gin.Context) {
 		return
 	}
 
-	//ValidateOtp(Mob)
-
+	// Get Twillio credentials from .env file
 	accountSid = os.Getenv("ACCOUNT_SID")
 	authToken = os.Getenv("AUTH_TOKEN")
 	fromPhone = os.Getenv("FROM_PHONE")
@@ -47,6 +46,7 @@ func OtpLog(c *gin.Context) {
 	})
 
 	Mobile := "+91" + Mob
+	// Creatin 4 digit OTP
 	rand.Seed(time.Now().UnixNano())
 	value := rand.Intn(9999-1000) + 1000
 	otp := strconv.Itoa(value)

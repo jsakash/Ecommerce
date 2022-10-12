@@ -59,7 +59,7 @@ func UnBlockUser(c *gin.Context) {
 
 func DeleteUser(c *gin.Context) {
 
-	id := c.Param("id")
+	id := c.Query("id")
 	database.DB.Delete(&models.Users{}, id)
 
 	c.JSON(200, gin.H{

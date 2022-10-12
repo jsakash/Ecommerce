@@ -13,8 +13,9 @@ import (
 )
 
 func AddToCart(c *gin.Context) {
-
+	// Fetch user from jwt
 	UsersID := c.GetUint("id")
+	// Gets details from req body
 	var body struct {
 		ProductsID uint
 		Quantity   int
@@ -51,7 +52,7 @@ func AddToCart(c *gin.Context) {
 		"status":  true,
 		"message": "Added To Cart",
 	})
-
+	// creating information related to the products added to the cart
 	for i := 1; i <= body.Quantity; i++ {
 		var discount models.Discount
 		database.DB.Where("product_id = ?", body.ProductsID).Find(&discount)
@@ -63,8 +64,9 @@ func AddToCart(c *gin.Context) {
 }
 
 func CartList(c *gin.Context) {
-	var Subtotal int
+	// Fetch user from jwt
 	UsersID := c.GetUint("id")
+	var Subtotal int
 	var cart []struct {
 		ID            int
 		Products_id   int
@@ -106,14 +108,13 @@ func RemoveFromCart(c *gin.Context) {
 }
 
 func CartCheckoutDetails(c *gin.Context) {
+	// Fetch user from jwt
 	UsersID := c.GetUint("id")
 	couponcode := c.Query("CouponCode")
 	ApplyWallet := c.Query("ApplyWallet")
 	var TotalAmpount int
 	var TotalMrp int
-	/// checkoutinfo models.Checkoutinfo
 	var balance int
-
 	var checkoutinfo models.Checkoutinfo
 	database.DB.First(&checkoutinfo, "users_id = ?", UsersID)
 
@@ -232,7 +233,6 @@ func CartCheckout(c *gin.Context) {
 	total := checkoutinfo.Total
 
 	c.JSON(200, gin.H{
-		//"message":    checkoutinfo,
 		"discount":   discount,
 		"coupondisc": couponDiscount,
 		"coupcod":    couponCode,
@@ -275,6 +275,7 @@ func CartCheckout(c *gin.Context) {
 			})
 			return
 		}
+		// Removing items from the cart if the order is success
 		var cart models.Cart
 		database.DB.Raw("DELETE FROM carts WHERE users_id = ?", userID).Scan(&cart)
 		var cartinfodel models.CartInfo
@@ -285,7 +286,6 @@ func CartCheckout(c *gin.Context) {
 			"status":  true,
 			"message": "Order Placed",
 		})
-		//placeOrder(userID, orderID)
 	}
 	if PaymentMethod == RazorPay {
 		orders := models.Orders{UsersID: userID, AddressID: uint(addressID), OrderID: orderID, Discount: discount, CouponDiscount: couponDiscount, CouponCode: couponCode, Payment_Method: RazorPay, Total_Amount: total, OrderStatus: OrderStatus, PaymentStatus: PayStatus}
@@ -308,16 +308,4 @@ func placeOrder(uid uint, oid string) {
 	database.DB.Raw("DELETE FROM cart_infos WHERE users_id = ?", usersID).Scan(&cartinfodel)
 	var checkinfo models.Checkoutinfo
 	database.DB.Raw("DELETE FROM checkoutinfos WHERE users_id = ?", usersID).Scan(&checkinfo)
-}
-
-func WalletBalance(c *gin.Context) {
-
-	userID := c.GetUint("id")
-	var balance int
-	database.DB.Raw("SELECT balance FROM wallets WHERE users_id = ?", userID).Scan(&balance)
-	c.JSON(200, gin.H{
-		"status":  true,
-		"Balance": balance,
-		"UserID":  userID,
-	})
 }

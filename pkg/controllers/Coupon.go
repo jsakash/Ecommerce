@@ -10,10 +10,10 @@ import (
 )
 
 func AddCoupon(c *gin.Context) {
-
-	couponName := c.Query("couponName")
-	couponCode := c.Query("couponCode")
-	Percentage := c.Query("couponPercentage")
+	// Get Info from the req body
+	couponName := c.PostForm("couponName")
+	couponCode := c.PostForm("couponCode")
+	Percentage := c.PostForm("couponPercentage")
 	couponPercentage, _ := strconv.Atoi(Percentage)
 
 	coupon := models.Coupon{CouponName: couponName, CouponCode: couponCode, CouponPercentage: couponPercentage}

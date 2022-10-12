@@ -52,7 +52,6 @@ func RazorPay(c *gin.Context) {
 	})
 
 	if err != nil {
-		//http.Response.Status
 		c.JSON(200, gin.H{
 			"msg": orderIDCreated,
 		})
@@ -94,6 +93,7 @@ func SuccesPage(c *gin.Context) {
 	c.HTML(200, "success.html", nil)
 }
 
+// Razorpay transaction details
 func RazorPayInfo(c *gin.Context) {
 	var RazPay []models.RazorPay
 	database.DB.Find(&RazPay)

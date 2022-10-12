@@ -37,25 +37,3 @@ type Size struct {
 	Size     int
 	Products Products
 }
-type Discount struct {
-	gorm.Model
-	DiscountName       string
-	DiscountPercentage int
-	ProductId          int
-}
-
-type Wallet struct {
-	UsersID uint
-	Balance int
-}
-
-type Checkoutinfo struct {
-	gorm.Model
-	UsersID        int
-	OrderID        string
-	Discount       int
-	CouponDiscount int
-	CouponCode     string
-	TotalMrp       int
-	Total          int
-}

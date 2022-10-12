@@ -341,21 +341,3 @@ func EditAddress(c *gin.Context) {
 	})
 
 }
-
-func WalletInfo(c *gin.Context) {
-
-	UsersID := c.GetUint("id")
-	var history []models.Wallethistory
-	database.DB.Where("wallethistories.users_id = ?", UsersID).Find(&history)
-
-	for _, i := range history {
-		c.JSON(200, gin.H{
-			"status": true,
-			"Date":   i.CreatedAt,
-			"Debit":  i.Debit,
-			"Credit": i.Credit,
-			"UserID": i.UsersID,
-		})
-	}
-
-}

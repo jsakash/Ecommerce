@@ -17,8 +17,6 @@ func UserRoutes(UserRoutes *gin.Engine) {
 	UserRoutes.POST("/user/addtocart", middleware.UserAuth, controllers.AddToCart)
 	UserRoutes.POST("/user/addwishlist", middleware.UserAuth, controllers.AddToWishlist)
 	UserRoutes.POST("/user/order/cancel", middleware.UserAuth, controllers.CancelOrder)
-	// UserRoutes.POST("/user/buynow", middleware.UserAuth, controllers.BuyNow)
-	// UserRoutes.POST("/user/buynow/checkout", middleware.UserAuth, controllers.BuyNowCheckout)
 	UserRoutes.POST("/user/cartcheckout", middleware.UserAuth, controllers.CartCheckout)
 
 	// GET Routes
@@ -44,7 +42,6 @@ func UserRoutes(UserRoutes *gin.Engine) {
 		})
 	})
 
-	//UserRoutes.GET("/user/payment/razorpay/successpage", controllers.Exec)
 	// PUT Router
 	UserRoutes.PUT("user/profile/edit/address", middleware.UserAuth, controllers.EditAddress)
 	//PATCH Routes
@@ -52,9 +49,5 @@ func UserRoutes(UserRoutes *gin.Engine) {
 	//DELETE Routes
 	UserRoutes.DELETE("/user/removefromcart/:id", middleware.UserAuth, controllers.RemoveFromCart)
 	UserRoutes.LoadHTMLGlob("./templates/*")
-	//loading gohtml files from templates directory
-
-	//UserRoutes.DELETE("/delete", middleware.UserAuth, controllers.DeleteOtp)
-	//UserRoutes.GET("/user/total", middleware.UserAuth, controllers.TotalPrice)
 
 }

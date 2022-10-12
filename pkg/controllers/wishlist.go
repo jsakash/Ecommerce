@@ -7,6 +7,7 @@ import (
 )
 
 func AddToWishlist(c *gin.Context) {
+	// Fetch user id from jwt
 	id := c.GetUint("id")
 	var body struct {
 		ProductsID uint

@@ -172,12 +172,12 @@ outline: none; ; margin-bottom: 10px; width: 300px;"><i class="fas fa-money-bill
           location.href = '/success'
         }else {
           console.log('test failed')
-          // swal({
-          //   title: "Sorry, Payment Failed",
-          //   icon: 'warning',
-          //   dangerMode: true,
-          // })
-          // location.replace('/failed')
+          swal({
+            title: "Sorry, Payment Failed",
+            icon: 'warning',
+            dangerMode: true,
+          })
+          location.replace('/failed')
           alert("error")
         }
       }

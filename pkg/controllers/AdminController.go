@@ -11,6 +11,7 @@ import (
 	"github.com/jsakash/ecommers/pkg/models"
 )
 
+// To create an admin with credentials stored in .env file
 func CreateAdmin(c *gin.Context) {
 
 	Email := os.Getenv("ADMIN_EMAIL")

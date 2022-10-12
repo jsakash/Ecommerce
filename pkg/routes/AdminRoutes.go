@@ -25,7 +25,6 @@ func AdminRoutes(AdminRoutes *gin.Engine) {
 	AdminRoutes.GET("/admin/list/coupons", middleware.AdminAuth, controllers.ListCoupons)
 	AdminRoutes.GET("/admin/list/discounts", middleware.AdminAuth, controllers.ListDiscount)
 	AdminRoutes.GET("/admin/list/orderinfo", middleware.AdminAuth, controllers.OrderInfo)
-	//AdminRoutes.GET("/admin/list/discounts", middleware.AdminAuth, controllers.ListDiscount)
 	AdminRoutes.GET("/admin/getproduct/:id", middleware.AdminAuth, controllers.FetchProduct)
 	AdminRoutes.GET("/admin/razorpar/details", middleware.AdminAuth, controllers.RazorPayInfo)
 	// PATCH Routes

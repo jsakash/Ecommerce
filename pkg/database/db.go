@@ -44,19 +44,3 @@ func ConnectToDb() {
 		&models.Wallethistory{},
 	)
 }
-
-//connecting database and returning database engine
-// func GetDb() *gorm.DB {
-// 	err := godotenv.Load(".env")
-// 	if err != nil {
-// 		fmt.Println("Unable to get data from env!!")
-// 	}
-// 	// dsn := os.Getenv("database_address")
-// 	dsn := "host=localhost user=akashjs password=312002 dbname=ecommers port=5432 sslmode=disable"
-
-// 	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-// 	if err != nil {
-// 		panic("Failed to connect database!")
-// 	}
-// 	return DB
-// }
