@@ -31,7 +31,6 @@ func Signup(c *gin.Context) {
 		Phone_Number string
 		Status       bool
 	}
-
 	//Get the name/email/password off req body
 	if c.Bind(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -39,15 +38,12 @@ func Signup(c *gin.Context) {
 		})
 		return
 	}
-
 	// Hash the given password
 	hashPass := HashPassword(body.Password)
-
 	// Create the user
 	user := models.Users{First_Name: body.First_Name, Last_Name: body.Last_Name, Email: body.Email, Password: hashPass, Phone_Number: body.Phone_Number, Status: true}
 	var checkMail []models.Users
 	database.DB.Find(&checkMail)
-
 	// Checking username existence
 	for _, i := range checkMail {
 		if i.Email == user.Email {
@@ -65,14 +61,12 @@ func Signup(c *gin.Context) {
 		})
 		return
 	}
-
 	if user.Email == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Email is required",
 		})
 		return
 	}
-
 	if user.Password == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Password is required",
@@ -80,16 +74,13 @@ func Signup(c *gin.Context) {
 
 		return
 	}
-
 	result := database.DB.Create(&user)
-
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to create user",
 		})
 		return
 	}
-
 	// Respond
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Account Created",
@@ -97,20 +88,17 @@ func Signup(c *gin.Context) {
 
 	var users models.Users
 	database.DB.First(&users, "email = ?", body.Email)
-
 	wallet := models.Wallet{UsersID: users.ID, Balance: 0}
 	database.DB.Create(&wallet)
 
 }
 
 func Login(c *gin.Context) {
-
 	// Get Email and Password off req body
 	var body struct {
 		Email    string
 		Password string
 	}
-
 	if c.Bind(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to read body ",
@@ -129,10 +117,8 @@ func Login(c *gin.Context) {
 
 		return
 	}
-
 	// Compare sent in pass with saved user pass hash
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
-
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -140,7 +126,6 @@ func Login(c *gin.Context) {
 		})
 		return
 	}
-
 	if !user.Status {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -148,13 +133,11 @@ func Login(c *gin.Context) {
 		})
 		return
 	}
-
 	// Generate a jwt token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.ID,
 		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
-
 	// SIgn and get the complete encoded token as a string using the secret key
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
 	if err != nil {
@@ -174,7 +157,6 @@ func Login(c *gin.Context) {
 		"message": "OK",
 		"data":    tokenString,
 	})
-
 }
 
 func ChangePasswors(c *gin.Context) {
@@ -186,7 +168,6 @@ func ChangePasswors(c *gin.Context) {
 	userID := c.GetUint("id")
 	password := body.Password
 	newPassword := body.newPassword
-
 	// Look up request user
 	var user models.Users
 	database.DB.First(&user, "id = ?", userID)
@@ -198,7 +179,6 @@ func ChangePasswors(c *gin.Context) {
 
 		return
 	}
-
 	// Compare sent in pass with saved user pass hash
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
@@ -208,7 +188,6 @@ func ChangePasswors(c *gin.Context) {
 		})
 		return
 	}
-
 	newHashPass := HashPassword(newPassword)
 	database.DB.Model(&user).Where("id=?", userID).Update("password", newHashPass)
 	// Return Response
@@ -234,7 +213,6 @@ func Validate(c *gin.Context) {
 }
 
 func AddAddress(c *gin.Context) {
-
 	id := c.GetUint("id") // Get ID from token
 	var body struct {
 		Name         string
@@ -247,7 +225,6 @@ func AddAddress(c *gin.Context) {
 	}
 
 	c.Bind(&body)
-
 	// Create
 	address := models.Address{
 		UsersID:      id,
@@ -261,7 +238,6 @@ func AddAddress(c *gin.Context) {
 	}
 
 	result := database.DB.Create(&address)
-
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"staus":   false,
@@ -269,24 +245,19 @@ func AddAddress(c *gin.Context) {
 		})
 	}
 	// Return it
-
 	c.JSON(200, gin.H{
 		"status":  true,
 		"message": "Address added sucessfully",
 	})
-
 }
 
 func SelectAddress(c *gin.Context) {
-
 	// Get id off the loggedin user
 	UsersID := c.GetUint("id")
-
 	// Find the product
 	var address []models.Address
 	// database.DB.First(&address, UsersID)
 	database.DB.Where("addresses.users_id = ?", UsersID).Find(&address)
-
 	for _, i := range address {
 		c.JSON(200, gin.H{
 			"Name":          i.Name,
@@ -299,14 +270,11 @@ func SelectAddress(c *gin.Context) {
 			"id":            i.ID,
 		})
 	}
-
 }
 
 func EditAddress(c *gin.Context) {
-
 	// Get id off the url
 	id := c.Query("id")
-
 	// Get data off req body
 	var body struct {
 		Name         string
@@ -319,11 +287,9 @@ func EditAddress(c *gin.Context) {
 	}
 
 	c.Bind(&body)
-
 	// Find the post we are updating
 	var Address []models.Address
 	database.DB.First(&Address, id)
-
 	// Update it
 	database.DB.Model(&Address).Updates(models.Address{
 		Name:         body.Name,

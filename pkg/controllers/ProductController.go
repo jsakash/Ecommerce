@@ -141,12 +141,9 @@ func ListAllProducts(c *gin.Context) {
 }
 
 func UpdateProduct(c *gin.Context) {
-
 	// Get id off the url
 	id := c.Param("id")
-
 	// Get data off req body
-
 	var body struct {
 		Product_Name  string
 		Brand_Name    string
@@ -157,13 +154,10 @@ func UpdateProduct(c *gin.Context) {
 		SizeID        uint
 		Stock         int
 	}
-
 	c.Bind(&body)
-
 	// Find the post we are updating
 	var products []models.Products
 	database.DB.First(&products, id)
-
 	// Update it
 	database.DB.Model(&products).Updates(models.Products{
 		Product_Name:  body.Product_Name,
@@ -175,23 +169,18 @@ func UpdateProduct(c *gin.Context) {
 		SizeID:        body.SizeID,
 		Stock:         body.Stock,
 	})
-
 	// Response
 	c.JSON(200, gin.H{
 		"message": "Product updated",
 	})
-
 }
 
 func FetchProduct(c *gin.Context) {
-
 	// Get id off the url
 	id := c.Param("id")
-
 	// Find the product
 	var product models.Products
 	database.DB.First(&product, id)
-
 	c.JSON(200, gin.H{
 		"product": product,
 	})
@@ -199,30 +188,23 @@ func FetchProduct(c *gin.Context) {
 }
 
 func DeleteProduct(c *gin.Context) {
-
 	id := c.Param("id")
 	database.DB.Delete(&models.Products{}, id)
-
 	c.JSON(200, gin.H{
 		"message": "Deleted succesfully",
 	})
-
 }
 
 func AddCategory(c *gin.Context) {
-
 	// Get data off req body
 	var body struct {
 		Category string
 	}
-
 	c.Bind(&body)
-
 	// Create
 	catogory := models.Category{
 		Category: body.Category,
 	}
-
 	result := database.DB.Create(&catogory)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
@@ -237,33 +219,27 @@ func AddCategory(c *gin.Context) {
 }
 
 func CatogoryList(c *gin.Context) {
-
 	var catogory []models.Category
-
 	database.DB.Find(&catogory)
 	for _, i := range catogory {
 		c.JSON(200, gin.H{
 			"catogory": i.Category,
 			"id":       i.ID,
 		})
-
 	}
 }
 func AddColor(c *gin.Context) {
-
 	// Get data off req body
 	var body struct {
 		Color string
 		//ProductsID Products
 	}
 	c.Bind(&body)
-
 	// Create
 	color := models.Colors{
 		Color: body.Color,
 	}
 	result := database.DB.Create(&color)
-
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"message": "Error",
@@ -273,7 +249,6 @@ func AddColor(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "Color Added Successfully",
 	})
-
 }
 
 func AddSize(c *gin.Context) {
@@ -302,9 +277,7 @@ func AddSize(c *gin.Context) {
 }
 
 func SearchProduct(c *gin.Context) {
-
 	productName := c.Query("product")
-
 	var products []struct {
 		Product_Name  string
 		Brand_Name    string
@@ -317,7 +290,6 @@ func SearchProduct(c *gin.Context) {
 	}
 
 	database.DB.Find(&products)
-
 	database.DB.Raw("SELECT product_name,brand_name,description,product_price,category,color,size,stock FROM products INNER JOIN categories on products.category_id = categories.id INNER JOIN colors ON products.colors_id = colors.id INNER JOIN sizes ON products.size_id = sizes.id WHERE product_name = ?", productName).Scan(&products)
 	c.JSON(200, gin.H{
 		"Products": products,

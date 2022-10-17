@@ -26,7 +26,7 @@ func UserRoutes(UserRoutes *gin.Engine) {
 	UserRoutes.GET("/user/cartlist", middleware.UserAuth, controllers.CartList)
 	UserRoutes.GET("/user/wishlist", middleware.UserAuth, controllers.Wishlist)
 	UserRoutes.GET("/user/validate", middleware.UserAuth, controllers.Validate)
-	UserRoutes.GET("/user/cartcheckoutdetails", middleware.UserAuth, controllers.CartCheckoutDetails)
+	UserRoutes.POST("/user/cartcheckoutdetails", middleware.UserAuth, controllers.CartCheckoutDetails)
 	UserRoutes.GET("/user/product/search", middleware.UserAuth, controllers.SearchProduct)
 	UserRoutes.GET("/user/wallet/history", middleware.UserAuth, controllers.WalletInfo)
 

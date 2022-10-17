@@ -112,7 +112,7 @@ func CartCheckoutDetails(c *gin.Context) {
 	UsersID := c.GetUint("id")
 	couponcode := c.Query("CouponCode")
 	ApplyWallet := c.Query("ApplyWallet")
-	var TotalAmpount int
+	TotalAmpount := 0
 	var TotalMrp int
 	var balance int
 	var checkoutinfo models.Checkoutinfo
