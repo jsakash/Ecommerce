@@ -80,7 +80,8 @@ func ListAllProducts(c *gin.Context) {
 	category := c.Query("category")
 	size := c.Query("size")
 	//filter := c.Query("filters")
-	limit := 3
+	lim := c.Query("limit")
+	limit, _ := strconv.Atoi(lim)
 	pageStr := c.Query("page")
 	page, _ := strconv.Atoi(pageStr)
 	offset := (page - 1) * limit
