@@ -60,7 +60,7 @@ func RazorPay(c *gin.Context) {
 }
 
 func RPSuccess(c *gin.Context) {
-
+	// Fetching credentials from the url
 	id := c.Query("user_id")
 	razorPaymentId := c.Query("payment_id")
 	razorPayOrderID := c.Query("order_id")
@@ -81,7 +81,7 @@ func RPSuccess(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status": true,
 	})
-
+	// Deleting the existing ifos if the order is success
 	var checkinfo models.Checkoutinfo
 	database.DB.Raw("DELETE FROM checkoutinfos WHERE users_id = ?", id).Scan(&checkinfo)
 	uid, _ := strconv.ParseUint(id, 10, 64)
